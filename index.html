@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Beary Translator</title>
+<style>
+  :root{
+    --bg:#0f1115;
+    --panel:#161a21;
+    --panel-2:#1d222b;
+    --border:#2a3140;
+    --text:#e8ebf0;
+    --text-dim:#8b93a3;
+    --accent:#4f8cff;
+    --accent-dim:#2c4a80;
+    --warn-bg:#3a2d12;
+    --warn-border:#7a5c1e;
+    --warn-text:#e8c374;
+    --error:#ff6b6b;
+    --radius:12px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    min-height:100vh;
+  }
+  header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:18px 24px;
+    border-bottom:1px solid var(--border);
+  }
+  header h1{
+    font-size:18px;
+    font-weight:600;
+    margin:0;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  header h1 .tag{
+    font-size:11px;
+    font-weight:600;
+    color:var(--accent);
+    background:rgba(79,140,255,0.12);
+    border:1px solid var(--accent-dim);
+    padding:2px 8px;
+    border-radius:999px;
+    letter-spacing:.03em;
+  }
+  .icon-btn{
+    background:none;
+    border:1px solid var(--border);
+    color:var(--text-dim);
+    width:38px;
+    height:38px;
+    border-radius:10px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transition:all .15s ease;
+  }
+  .icon-btn:hover{
+    color:var(--text);
+    border-color:var(--accent-dim);
+    background:rgba(79,140,255,0.08);
+  }
+  main{
+    max-width:1000px;
+    margin:0 auto;
+    padding:24px;
+  }
+  .banner{
+    background:var(--warn-bg);
+    border:1px solid var(--warn-border);
+    color:var(--warn-text);
+    border-radius:var(--radius);
+    padding:12px 16px;
+    font-size:13px;
+    line-height:1.5;
+    margin-bottom:20px;
+  }
+  .banner strong{color:#f5d78a;}
+  .translator{
+    display:grid;
+    grid-template-columns:1fr auto 1fr;
+    gap:14px;
+    align-items:stretch;
+  }
+  .pane{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    display:flex;
+    flex-direction:column;
+    min-height:280px;
+    overflow:hidden;
+  }
+  .pane-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:12px 16px;
+    border-bottom:1px solid var(--border);
+    font-size:13px;
+    font-weight:600;
+    color:var(--text-dim);
+  }
+  .pane textarea{
+    flex:1;
+    background:transparent;
+    border:none;
+    outline:none;
+    resize:none;
+    color:var(--text);
+    font-size:16px;
+    line-height:1.5;
+    padding:16px;
+    font-family:inherit;
+  }
+  .pane textarea::placeholder{color:#4a5163;}
+  .pane textarea[readonly]{color:var(--text);}
+  .pane-foot{
+    padding:8px 16px;
+    display:flex;
+    justify-content:flex-end;
+    gap:8px;
+    border-top:1px solid var(--border);
+  }
+  .mini-btn{
+    background:none;
+    border:1px solid var(--border);
+    color:var(--text-dim);
+    font-size:12px;
+    padding:5px 10px;
+    border-radius:7px;
+    cursor:pointer;
+  }
+  .mini-btn:hover{color:var(--text);border-color:var(--accent-dim);}
+  .swap-col{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .swap-btn{
+    width:42px;
+    height:42px;
+    border-radius:50%;
+    background:var(--panel-2);
+    border:1px solid var(--border);
+    color:var(--accent);
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transition:transform .15s ease;
+  }
+  .swap-btn:hover{transform:rotate(180deg);border-color:var(--accent-dim);}
+  .controls{
+    display:flex;
+    justify-content:center;
+    margin-top:20px;
+  }
+  .translate-btn{
+    background:var(--accent);
+    color:white;
+    border:none;
+    padding:12px 32px;
+    border-radius:999px;
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .translate-btn:disabled{opacity:.5;cursor:not-allowed;}
+  .translate-btn:hover:not(:disabled){background:#3d7aef;}
+  .spinner{
+    width:14px;height:14px;
+    border:2px solid rgba(255,255,255,.35);
+    border-top-color:white;
+    border-radius:50%;
+    animation:spin .7s linear infinite;
+    display:none;
+  }
+  .spinner.show{display:inline-block;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .status{
+    text-align:center;
+    font-size:13px;
+    color:var(--text-dim);
+    margin-top:14px;
+    min-height:18px;
+  }
+  .status.error{color:var(--error);}
+  .status a{color:var(--accent);}
+
+  /* Settings drawer */
+  .overlay{
+    position:fixed;inset:0;
+    background:rgba(0,0,0,.5);
+    display:none;
+    align-items:flex-start;
+    justify-content:flex-end;
+    z-index:50;
+  }
+  .overlay.show{display:flex;}
+  .drawer{
+    width:380px;
+    max-width:92vw;
+    height:100%;
+    background:var(--panel);
+    border-left:1px solid var(--border);
+    padding:22px;
+    overflow-y:auto;
+  }
+  .drawer h2{font-size:16px;margin:0 0 4px;}
+  .drawer p.sub{color:var(--text-dim);font-size:13px;margin:0 0 20px;}
+  .field{margin-bottom:16px;}
+  .field label{
+    display:block;font-size:12px;font-weight:600;
+    color:var(--text-dim);margin-bottom:6px;
+    text-transform:uppercase;letter-spacing:.03em;
+  }
+  .field input, .field select{
+    width:100%;
+    background:var(--panel-2);
+    border:1px solid var(--border);
+    color:var(--text);
+    padding:10px 12px;
+    border-radius:8px;
+    font-size:14px;
+    outline:none;
+  }
+  .field input:focus{border-color:var(--accent-dim);}
+  .field .hint{font-size:11px;color:var(--text-dim);margin-top:5px;line-height:1.5;}
+  .checkbox-row{
+    display:flex;align-items:center;gap:8px;
+    font-size:13px;color:var(--text-dim);margin-bottom:18px;
+  }
+  .save-btn{
+    width:100%;
+    background:var(--accent);
+    color:white;border:none;
+    padding:11px;border-radius:8px;
+    font-size:14px;font-weight:600;cursor:pointer;
+  }
+  .save-btn:hover{background:#3d7aef;}
+  .close-btn{
+    background:none;border:none;color:var(--text-dim);
+    font-size:20px;cursor:pointer;
+    position:absolute;top:18px;right:18px;
+  }
+  .drawer{position:relative;}
+  .divider{height:1px;background:var(--border);margin:20px 0;}
+  .about{font-size:12px;color:var(--text-dim);line-height:1.6;}
+  footer{
+    text-align:center;
+    color:var(--text-dim);
+    font-size:12px;
+    padding:30px 24px 40px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🐻 Beary Translator <span class="tag">AI-powered · beta</span></h1>
+  <button class="icon-btn" id="settingsBtn" title="Settings" aria-label="Settings">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+  </button>
+</header>
+
+<main>
+  <div class="banner">
+    <strong>Starter vocabulary notice:</strong> This build is grounded on a ~100-word test lexicon derived from documented sound-shift rules (not the full Nigantu dictionary yet). Translations for words in that list are more reliable; everything else is the AI's best effort and may be inaccurate. Beary output is always shown in Roman/English script.
+  </div>
+
+  <div class="translator">
+    <div class="pane">
+      <div class="pane-head"><span id="leftLabel">English</span></div>
+      <textarea id="inputText" placeholder="Type a word, sentence, or paragraph..."></textarea>
+      <div class="pane-foot">
+        <button class="mini-btn" id="clearBtn">Clear</button>
+      </div>
+    </div>
+
+    <div class="swap-col">
+      <button class="swap-btn" id="swapBtn" title="Swap languages" aria-label="Swap languages">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4M7 4L3 8M7 4l4 4"></path><path d="M17 8v12m0 0l4-4m-4 4l-4-4"></path></svg>
+      </button>
+    </div>
+
+    <div class="pane">
+      <div class="pane-head"><span id="rightLabel">Beary (Roman script)</span></div>
+      <textarea id="outputText" placeholder="Translation will appear here..." readonly></textarea>
+      <div class="pane-foot">
+        <button class="mini-btn" id="copyBtn">Copy</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="translate-btn" id="translateBtn">
+      <span class="spinner" id="spinner"></span>
+      <span id="translateLabel">Translate</span>
+    </button>
+  </div>
+
+  <div class="status" id="status"></div>
+</main>
+
+<footer>
+  Personal project · translations grounded on a starter lexicon + AI, not an official Academy tool.
+</footer>
+
+<div class="overlay" id="overlay">
+  <div class="drawer">
+    <button class="close-btn" id="closeDrawer">✕</button>
+    <h2>Settings</h2>
+    <p class="sub">Configure your AI provider. Your key stays in this browser only.</p>
+
+    <div class="field">
+      <label for="apiEndpoint">API Endpoint</label>
+      <input type="text" id="apiEndpoint" value="https://api.deepseek.com/chat/completions">
+      <div class="hint">OpenAI-compatible chat completions endpoint.</div>
+    </div>
+
+    <div class="field">
+      <label for="apiModel">Model</label>
+      <input type="text" id="apiModel" value="deepseek-chat">
+    </div>
+
+    <div class="field">
+      <label for="apiKey">API Key</label>
+      <input type="password" id="apiKey" placeholder="sk-...">
+    </div>
+
+    <div class="checkbox-row">
+      <input type="checkbox" id="rememberKey">
+      <label for="rememberKey" style="margin:0;text-transform:none;font-weight:400;">Remember on this device (stored locally in this browser only)</label>
+    </div>
+
+    <button class="save-btn" id="saveSettings">Save</button>
+
+    <div class="divider"></div>
+    <div class="about">
+      <strong style="color:var(--text);">About this build</strong><br>
+      Grounded on a starter ~100-word English↔Beary lexicon + documented grammar notes (Malayalam-based vocabulary, Tulu/Kannada-influenced phonology and grammar, nativized Arabic loanwords). Not affiliated with the Karnataka Beary Sahitya Academy. Report translation errors so the lexicon can be corrected.
+    </div>
+  </div>
+</div>
+
+<script src="lexicon_data.js"></script>
+<script>
+(function(){
+  // ---------- State ----------
+  let settings = { endpoint: "https://api.deepseek.com/chat/completions", model: "deepseek-chat", key: "" };
+  let direction = "en2beary"; // or "beary2en"
+
+  function safeLocalStorageGet(k){
+    try { return localStorage.getItem(k); } catch(e){ return null; }
+  }
+  function safeLocalStorageSet(k, v){
+    try { localStorage.setItem(k, v); return true; } catch(e){ return false; }
+  }
+  function safeLocalStorageRemove(k){
+    try { localStorage.removeItem(k); } catch(e){}
+  }
+
+  // Load any remembered (non-key) settings + remembered key if opted in
+  (function loadSettings(){
+    const savedEndpoint = safeLocalStorageGet("beary_endpoint");
+    const savedModel = safeLocalStorageGet("beary_model");
+    const savedKey = safeLocalStorageGet("beary_key");
+    if (savedEndpoint) settings.endpoint = savedEndpoint;
+    if (savedModel) settings.model = savedModel;
+    if (savedKey) { settings.key = savedKey; document.getElementById("rememberKey").checked = true; }
+    document.getElementById("apiEndpoint").value = settings.endpoint;
+    document.getElementById("apiModel").value = settings.model;
+    document.getElementById("apiKey").value = settings.key;
+  })();
+
+  // ---------- Settings drawer ----------
+  const overlay = document.getElementById("overlay");
+  document.getElementById("settingsBtn").addEventListener("click", () => overlay.classList.add("show"));
+  document.getElementById("closeDrawer").addEventListener("click", () => overlay.classList.remove("show"));
+  overlay.addEventListener("click", (e) => { if (e.target === overlay) overlay.classList.remove("show"); });
+
+  document.getElementById("saveSettings").addEventListener("click", () => {
+    settings.endpoint = document.getElementById("apiEndpoint").value.trim() || settings.endpoint;
+    settings.model = document.getElementById("apiModel").value.trim() || settings.model;
+    settings.key = document.getElementById("apiKey").value.trim();
+    const remember = document.getElementById("rememberKey").checked;
+    if (remember) {
+      safeLocalStorageSet("beary_endpoint", settings.endpoint);
+      safeLocalStorageSet("beary_model", settings.model);
+      safeLocalStorageSet("beary_key", settings.key);
+    } else {
+      safeLocalStorageRemove("beary_endpoint");
+      safeLocalStorageRemove("beary_model");
+      safeLocalStorageRemove("beary_key");
+    }
+    overlay.classList.remove("show");
+    setStatus("Settings saved.", false);
+  });
+
+  // ---------- Swap ----------
+  const leftLabel = document.getElementById("leftLabel");
+  const rightLabel = document.getElementById("rightLabel");
+  const inputText = document.getElementById("inputText");
+  const outputText = document.getElementById("outputText");
+
+  document.getElementById("swapBtn").addEventListener("click", () => {
+    direction = direction === "en2beary" ? "beary2en" : "en2beary";
+    updateLabels();
+    const tmp = inputText.value;
+    inputText.value = outputText.value;
+    outputText.value = tmp;
+  });
+
+  function updateLabels(){
+    if (direction === "en2beary") {
+      leftLabel.textContent = "English";
+      rightLabel.textContent = "Beary (Roman script)";
+      inputText.placeholder = "Type a word, sentence, or paragraph...";
+    } else {
+      leftLabel.textContent = "Beary (Roman script)";
+      rightLabel.textContent = "English";
+      inputText.placeholder = "Type Beary in Roman letters...";
+    }
+  }
+
+  document.getElementById("clearBtn").addEventListener("click", () => {
+    inputText.value = "";
+    outputText.value = "";
+    setStatus("", false);
+  });
+
+  document.getElementById("copyBtn").addEventListener("click", () => {
+    if (!outputText.value) return;
+    navigator.clipboard.writeText(outputText.value).then(() => setStatus("Copied to clipboard.", false));
+  });
+
+  // ---------- Translation ----------
+  function setStatus(msg, isError){
+    const el = document.getElementById("status");
+    el.textContent = msg;
+    el.className = "status" + (isError ? " error" : "");
+  }
+
+  function buildSystemPrompt(){
+    const lexiconLines = BEARY_LEXICON.map(e =>
+      `${e.english} = ${e.beary_romanized} [${e.confidence}]`
+    ).join("\n");
+
+    return `You are a careful English<->Beary (Byari) translator. Beary is a Dravidian dialect spoken along the Dakshina Kannada/Udupi coast of Karnataka and Manjeshwaram, Kasaragod (Kerala), India. It is Malayalam-vocabulary-based with Tulu/Kannada phonology and grammar, plus nativized Arabic/Persian loanwords. It has no dedicated everyday script; ALWAYS render Beary in plain Roman/English letters (a consistent simple phonetic spelling), never Kannada/Malayalam/Arabic script.
+
+GRAMMAR NOTES (best available, may be incomplete):
+- General Dravidian Subject-Object-Verb word order, postpositions not prepositions, no articles.
+- Sound shifts vs. Malayalam: word-initial v -> b; word-final -a often -> -e; doubled/geminate consonants often simplify to one; retroflex sounds (ḻ, ṇ, ṟ) are not sharply distinguished the way literary Malayalam distinguishes them.
+- Verbs generally do not inflect for person/number the way literary Malayalam does.
+
+STARTER LEXICON (ground truth where it applies -- use these exact forms when the word/phrase matches; confidence "attested" = documented from real sources, "derived" = rule-derived approximation, "uncertain" = flagged low confidence):
+${lexiconLines}
+
+INSTRUCTIONS:
+1. If the input text (or part of it) matches a lexicon entry, use that exact Beary form rather than inventing your own.
+2. For anything not in the lexicon, apply the documented grammar/sound-shift rules above as your best effort, but do NOT sound falsely confident.
+3. Keep sentence meaning and word order natural for the target language.
+4. Respond with ONLY the translation text -- no explanations, no quotes, no extra commentary, unless the input is empty or nonsensical (then say so briefly).
+5. If translating Beary -> English, interpret Roman-script Beary input using the same lexicon and sound-shift rules in reverse.`;
+  }
+
+  async function translate(){
+    const text = inputText.value.trim();
+    if (!text) { setStatus("Type something to translate.", true); return; }
+    if (!settings.key) { setStatus("Add your API key in Settings (gear icon) first.", true); overlay.classList.add("show"); return; }
+
+    const btn = document.getElementById("translateBtn");
+    const spinner = document.getElementById("spinner");
+    btn.disabled = true;
+    spinner.classList.add("show");
+    setStatus("Translating...", false);
+
+    const directionInstruction = direction === "en2beary"
+      ? "Translate the following ENGLISH text INTO Beary (Roman script)."
+      : "Translate the following BEARY text (given in Roman script) INTO English.";
+
+    try {
+      const res = await fetch(settings.endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + settings.key
+        },
+        body: JSON.stringify({
+          model: settings.model,
+          messages: [
+            { role: "system", content: buildSystemPrompt() },
+            { role: "user", content: directionInstruction + "\n\n" + text }
+          ],
+          temperature: 0.3
+        })
+      });
+
+      if (!res.ok) {
+        const errText = await res.text().catch(() => "");
+        throw new Error(`API responded ${res.status}: ${errText.slice(0,200)}`);
+      }
+
+      const data = await res.json();
+      const translation = data?.choices?.[0]?.message?.content?.trim();
+      if (!translation) throw new Error("No translation returned by the API.");
+
+      outputText.value = translation;
+      setStatus("Done.", false);
+    } catch (err) {
+      console.error(err);
+      const msg = String(err.message || err);
+      if (msg.includes("Failed to fetch") || msg.includes("NetworkError") || msg.includes("CORS")) {
+        setStatus("Couldn't reach the API directly from the browser (likely CORS). Check your API endpoint in Settings.", true);
+      } else {
+        setStatus("Error: " + msg, true);
+      }
+    } finally {
+      btn.disabled = false;
+      spinner.classList.remove("show");
+    }
+  }
+
+  document.getElementById("translateBtn").addEventListener("click", translate);
+  inputText.addEventListener("keydown", (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === "Enter") translate();
+  });
+
+  updateLabels();
+})();
+</script>
+
+</body>
+</html>
