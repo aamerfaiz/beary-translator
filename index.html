@@ -14,6 +14,9 @@
     --text-dim:#8b93a3;
     --accent:#4f8cff;
     --accent-dim:#2c4a80;
+    --good-bg:#12291c;
+    --good-border:#245c39;
+    --good-text:#7fd6a0;
     --warn-bg:#3a2d12;
     --warn-border:#7a5c1e;
     --warn-text:#e8c374;
@@ -46,9 +49,9 @@
   header h1 .tag{
     font-size:11px;
     font-weight:600;
-    color:var(--accent);
-    background:rgba(79,140,255,0.12);
-    border:1px solid var(--accent-dim);
+    color:var(--good-text);
+    background:rgba(127,214,160,0.10);
+    border:1px solid var(--good-border);
     padding:2px 8px;
     border-radius:999px;
     letter-spacing:.03em;
@@ -77,21 +80,25 @@
     padding:24px;
   }
   .banner{
-    background:var(--warn-bg);
-    border:1px solid var(--warn-border);
-    color:var(--warn-text);
+    background:var(--good-bg);
+    border:1px solid var(--good-border);
+    color:var(--good-text);
     border-radius:var(--radius);
     padding:12px 16px;
     font-size:13px;
-    line-height:1.5;
+    line-height:1.55;
     margin-bottom:20px;
   }
-  .banner strong{color:#f5d78a;}
+  .banner strong{color:#a8e8c2;}
   .translator{
     display:grid;
     grid-template-columns:1fr auto 1fr;
     gap:14px;
     align-items:stretch;
+  }
+  @media (max-width:720px){
+    .translator{grid-template-columns:1fr;}
+    .swap-col{justify-content:center;}
   }
   .pane{
     background:var(--panel);
@@ -99,7 +106,7 @@
     border-radius:var(--radius);
     display:flex;
     flex-direction:column;
-    min-height:280px;
+    min-height:220px;
     overflow:hidden;
   }
   .pane-head{
@@ -125,7 +132,6 @@
     font-family:inherit;
   }
   .pane textarea::placeholder{color:#4a5163;}
-  .pane textarea[readonly]{color:var(--text);}
   .pane-foot{
     padding:8px 16px;
     display:flex;
@@ -165,6 +171,8 @@
   .controls{
     display:flex;
     justify-content:center;
+    align-items:center;
+    gap:12px;
     margin-top:20px;
   }
   .translate-btn{
@@ -200,7 +208,48 @@
     min-height:18px;
   }
   .status.error{color:var(--error);}
-  .status a{color:var(--accent);}
+
+  /* Dictionary results */
+  .results{margin-top:26px;}
+  .results h2{
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    color:var(--text-dim);
+    margin:0 0 10px;
+  }
+  .entry{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:12px 15px;
+    margin-bottom:9px;
+  }
+  .entry .word{
+    font-size:17px;
+    font-weight:600;
+    color:var(--good-text);
+    margin-right:8px;
+  }
+  .entry .pos{
+    font-size:11px;
+    color:var(--text-dim);
+    border:1px solid var(--border);
+    padding:1px 6px;
+    border-radius:999px;
+  }
+  .entry .gloss{
+    margin-top:5px;
+    font-size:14px;
+    line-height:1.5;
+  }
+  .entry .variants{
+    margin-top:6px;
+    font-size:12px;
+    color:var(--text-dim);
+  }
+  .entry .variants b{color:var(--text-dim);font-weight:600;}
+  .more{font-size:12px;color:var(--text-dim);margin-top:4px;}
 
   /* Settings drawer */
   .overlay{
@@ -220,16 +269,17 @@
     border-left:1px solid var(--border);
     padding:22px;
     overflow-y:auto;
+    position:relative;
   }
   .drawer h2{font-size:16px;margin:0 0 4px;}
-  .drawer p.sub{color:var(--text-dim);font-size:13px;margin:0 0 20px;}
+  .drawer p.sub{color:var(--text-dim);font-size:13px;margin:0 0 20px;line-height:1.5;}
   .field{margin-bottom:16px;}
   .field label{
     display:block;font-size:12px;font-weight:600;
     color:var(--text-dim);margin-bottom:6px;
     text-transform:uppercase;letter-spacing:.03em;
   }
-  .field input, .field select{
+  .field input{
     width:100%;
     background:var(--panel-2);
     border:1px solid var(--border);
@@ -258,13 +308,13 @@
     font-size:20px;cursor:pointer;
     position:absolute;top:18px;right:18px;
   }
-  .drawer{position:relative;}
   .divider{height:1px;background:var(--border);margin:20px 0;}
   .about{font-size:12px;color:var(--text-dim);line-height:1.6;}
   footer{
     text-align:center;
     color:var(--text-dim);
     font-size:12px;
+    line-height:1.6;
     padding:30px 24px 40px;
   }
 </style>
@@ -272,15 +322,19 @@
 <body>
 
 <header>
-  <h1>🐻 Beary Translator <span class="tag">AI-powered · beta</span></h1>
+  <h1>🐻 Beary Translator <span class="tag" id="countTag">dictionary-backed</span></h1>
   <button class="icon-btn" id="settingsBtn" title="Settings" aria-label="Settings">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
   </button>
 </header>
 
 <main>
-  <div class="banner">
-    <strong>Starter vocabulary notice:</strong> This build is grounded on a ~100-word test lexicon derived from documented sound-shift rules (not the full Nigantu dictionary yet). Translations for words in that list are more reliable; everything else is the AI's best effort and may be inaccurate. Beary output is always shown in Roman/English script.
+  <div class="banner" id="banner">
+    <strong>Word lookup is exact and needs no API key.</strong> Words and phrases
+    are answered straight from the <em>Beary–Kannada–English Lexicon</em>
+    (Karnataka Beary Sahitya Academy, 2017). Full sentences are assembled by an
+    AI model that is given the matching dictionary entries to work from — add a
+    key in Settings for those. Beary is always shown in Roman script.
   </div>
 
   <div class="translator">
@@ -315,22 +369,27 @@
   </div>
 
   <div class="status" id="status"></div>
+
+  <div class="results" id="results"></div>
 </main>
 
 <footer>
-  Personal project · translations grounded on a starter lexicon + AI, not an official Academy tool.
+  Vocabulary from the <em>Beary–Kannada–English Lexicon</em> (Nigantu), Karnataka
+  Beary Sahitya Academy, 2017.<br>
+  Personal project, not an official Academy tool.
 </footer>
 
 <div class="overlay" id="overlay">
   <div class="drawer">
     <button class="close-btn" id="closeDrawer">✕</button>
     <h2>Settings</h2>
-    <p class="sub">Configure your AI provider. Your key stays in this browser only.</p>
+    <p class="sub">Only needed for full-sentence translation. Dictionary lookup
+      works without a key. Your key stays in this browser.</p>
 
     <div class="field">
       <label for="apiEndpoint">API Endpoint</label>
       <input type="text" id="apiEndpoint" value="https://api.deepseek.com/chat/completions">
-      <div class="hint">OpenAI-compatible chat completions endpoint.</div>
+      <div class="hint">Any OpenAI-compatible chat completions endpoint.</div>
     </div>
 
     <div class="field">
@@ -345,7 +404,7 @@
 
     <div class="checkbox-row">
       <input type="checkbox" id="rememberKey">
-      <label for="rememberKey" style="margin:0;text-transform:none;font-weight:400;">Remember on this device (stored locally in this browser only)</label>
+      <label for="rememberKey" style="margin:0;text-transform:none;font-weight:400;">Remember on this device (stored in this browser only)</label>
     </div>
 
     <button class="save-btn" id="saveSettings">Save</button>
@@ -353,7 +412,11 @@
     <div class="divider"></div>
     <div class="about">
       <strong style="color:var(--text);">About this build</strong><br>
-      Grounded on a starter ~100-word English↔Beary lexicon + documented grammar notes (Malayalam-based vocabulary, Tulu/Kannada-influenced phonology and grammar, nativized Arabic loanwords). Not affiliated with the Karnataka Beary Sahitya Academy. Report translation errors so the lexicon can be corrected.
+      <span id="aboutCount"></span> entries extracted from the Academy's printed
+      Lexicon, plus the phonology and grammar notes published with it. Beary is
+      rendered in the Lexicon's own Roman transliteration. Sentence translation
+      sends only your text and the matching dictionary entries to the endpoint
+      you configure.
     </div>
   </div>
 </div>
@@ -361,73 +424,243 @@
 <script src="lexicon_data.js"></script>
 <script>
 (function(){
-  // ---------- State ----------
-  let settings = { endpoint: "https://api.deepseek.com/chat/completions", model: "deepseek-chat", key: "" };
-  let direction = "en2beary"; // or "beary2en"
+  "use strict";
 
-  function safeLocalStorageGet(k){
-    try { return localStorage.getItem(k); } catch(e){ return null; }
-  }
-  function safeLocalStorageSet(k, v){
-    try { localStorage.setItem(k, v); return true; } catch(e){ return false; }
-  }
-  function safeLocalStorageRemove(k){
-    try { localStorage.removeItem(k); } catch(e){}
+  // ---------- Lexicon indexes ----------
+  // Rows are [beary, ascii, english, pos, seeAlso?]
+  const B = 0, A = 1, E = 2, P = 3, S = 4;
+
+  const FOLD = {
+    "ā":"a","ē":"e","ī":"i","ō":"o","ū":"u",
+    "ụ":"u","ɛ":"e","ḷ":"l","ṃ":"m","ṇ":"n",
+    "ṭ":"t","ḍ":"d","ṣ":"sh","ś":"sh","ñ":"n",
+    "ṅ":"n"
+  };
+
+  // Mirrors fold_ascii() in tools/extract_dictionary.py so that what a user
+  // types lands on the same key as the precomputed ascii column.
+  function foldBeary(s){
+    let out = "";
+    for (const ch of s.toLowerCase()){
+      if (FOLD[ch]) out += FOLD[ch];
+      else if (/[a-z0-9\s]/.test(ch)) out += ch;
+    }
+    return out.replace(/\s+/g," ").trim();
   }
 
-  // Load any remembered (non-key) settings + remembered key if opted in
+  function normEnglish(s){
+    return s.toLowerCase().replace(/[^a-z0-9\s]/g," ").replace(/\s+/g," ").trim();
+  }
+
+  const bearyIdx = new Map();   // folded beary -> [row index]
+  const glossIdx = new Map();   // whole gloss/sense -> [row index]
+  const wordIdx  = new Map();   // single English word -> [row index]
+
+  function push(map, key, i){
+    if (!key) return;
+    let a = map.get(key);
+    if (!a) map.set(key, a = []);
+    if (a.length < 60 && a[a.length-1] !== i) a.push(i);
+  }
+
+  // Words too common to be a useful search key on their own.
+  const STOP = new Set(("a an the of to in on for with and or is are be been being " +
+    "that this it its as at by from up down out off over under one type kind " +
+    "used using use very who whom whose what which not no yes he she they " +
+    "him her them his their you your i me my we our").split(" "));
+
+  function splitSenses(gloss){
+    const byNum = gloss.split(/(?:^|\s)\d+\.\s*/).filter(s => s.trim());
+    const parts = byNum.length > 1 ? byNum : [gloss];
+    const out = [];
+    for (const p of parts){
+      for (const s of p.split(";")){
+        const t = s.trim().replace(/[.,;]+$/,"");
+        if (t) out.push(t);
+      }
+    }
+    return out;
+  }
+
+  for (let i = 0; i < BEARY_LEXICON.length; i++){
+    const row = BEARY_LEXICON[i];
+    push(bearyIdx, row[A], i);
+    const senses = splitSenses(row[E]);
+    for (const sense of senses){
+      const n = normEnglish(sense);
+      push(glossIdx, n, i);
+      // "to run" and "running" should both find "run"
+      const bare = n.replace(/^to\s+/,"");
+      if (bare !== n) push(glossIdx, bare, i);
+      for (const w of n.split(" ")){
+        if (w.length > 2 && !STOP.has(w)) push(wordIdx, w, i);
+      }
+    }
+  }
+
+  document.getElementById("countTag").textContent =
+    BEARY_LEXICON.length.toLocaleString() + " entries";
+  document.getElementById("aboutCount").textContent =
+    BEARY_LEXICON.length.toLocaleString();
+
+  // ---------- Lookup ----------
+  const bearyKeys = [...bearyIdx.keys()].sort();
+
+  // First key at or after `prefix`, by binary search.
+  function lowerBound(prefix){
+    let lo = 0, hi = bearyKeys.length;
+    while (lo < hi){
+      const mid = (lo + hi) >> 1;
+      if (bearyKeys[mid] < prefix) lo = mid + 1; else hi = mid;
+    }
+    return lo;
+  }
+
+  function prefixMatches(prefix, limit){
+    const out = [];
+    for (let i = lowerBound(prefix); i < bearyKeys.length; i++){
+      if (!bearyKeys[i].startsWith(prefix)) break;
+      out.push(...bearyIdx.get(bearyKeys[i]));
+      if (out.length >= limit) break;
+    }
+    return out;
+  }
+
+  function lookupBeary(text){
+    const key = foldBeary(text);
+    if (!key) return [];
+    const exact = bearyIdx.get(key);
+    if (exact) return exact.slice();
+
+    // Words the dictionary lists in a longer form: match on what was typed.
+    let hits = prefixMatches(key, 10);
+    if (hits.length) return hits;
+
+    // Inflected or suffixed input: back off a letter at a time and take the
+    // longest dictionary word that the input starts with.
+    for (let n = key.length - 1; n >= Math.max(2, key.length - 6); n--){
+      const stem = key.slice(0, n);
+      const stemHit = bearyIdx.get(stem);
+      if (stemHit) return stemHit.slice();
+      hits = prefixMatches(stem, 8);
+      if (hits.length) return hits;
+    }
+    return [];
+  }
+
+  function lookupEnglish(text){
+    const n = normEnglish(text);
+    if (!n) return [];
+    let hits = glossIdx.get(n) || glossIdx.get(n.replace(/^to\s+/,"")) || [];
+    if (hits.length) return hits.slice();
+    const scores = new Map();
+    for (const w of n.split(" ")){
+      if (STOP.has(w)) continue;
+      for (const i of (wordIdx.get(w) || [])){
+        scores.set(i, (scores.get(i) || 0) + 1);
+      }
+    }
+    return [...scores.entries()]
+      .sort((a,b) => b[1]-a[1])
+      .slice(0, 12)
+      .map(e => e[0]);
+  }
+
+  const lookup = (text, dir) =>
+    dir === "en2beary" ? lookupEnglish(text) : lookupBeary(text);
+
+  // ---------- Rendering ----------
+  const POS_NAME = {n:"noun", v:"verb"};
+
+  function renderEntries(title, indexes, note){
+    const box = document.getElementById("results");
+    if (!indexes.length){ box.innerHTML = ""; return; }
+    const seen = new Set();
+    const rows = [];
+    for (const i of indexes){
+      if (seen.has(i)) continue;
+      seen.add(i);
+      rows.push(BEARY_LEXICON[i]);
+      if (rows.length >= 12) break;
+    }
+    let html = "<h2>" + title + "</h2>";
+    for (const r of rows){
+      html += '<div class="entry">';
+      html += '<span class="word">' + esc(r[B]) + "</span>";
+      if (POS_NAME[r[P]]) html += '<span class="pos">' + POS_NAME[r[P]] + "</span>";
+      html += '<div class="gloss">' + esc(r[E]) + "</div>";
+      if (r[S] && r[S].length){
+        html += '<div class="variants"><b>also:</b> ' +
+                r[S].map(esc).join(" · ") + "</div>";
+      }
+      html += "</div>";
+    }
+    if (note) html += '<div class="more">' + esc(note) + "</div>";
+    box.innerHTML = html;
+  }
+
+  function esc(s){
+    return String(s).replace(/[&<>"]/g, c =>
+      ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  }
+
+  // ---------- Settings ----------
+  let settings = {
+    endpoint: "https://api.deepseek.com/chat/completions",
+    model: "deepseek-chat",
+    key: ""
+  };
+  let direction = "en2beary";
+
+  const store = {
+    get(k){ try { return localStorage.getItem(k); } catch(e){ return null; } },
+    set(k,v){ try { localStorage.setItem(k,v); } catch(e){} },
+    del(k){ try { localStorage.removeItem(k); } catch(e){} }
+  };
+
   (function loadSettings(){
-    const savedEndpoint = safeLocalStorageGet("beary_endpoint");
-    const savedModel = safeLocalStorageGet("beary_model");
-    const savedKey = safeLocalStorageGet("beary_key");
-    if (savedEndpoint) settings.endpoint = savedEndpoint;
-    if (savedModel) settings.model = savedModel;
-    if (savedKey) { settings.key = savedKey; document.getElementById("rememberKey").checked = true; }
+    const ep = store.get("beary_endpoint"), md = store.get("beary_model"),
+          ky = store.get("beary_key");
+    if (ep) settings.endpoint = ep;
+    if (md) settings.model = md;
+    if (ky){ settings.key = ky; document.getElementById("rememberKey").checked = true; }
     document.getElementById("apiEndpoint").value = settings.endpoint;
     document.getElementById("apiModel").value = settings.model;
     document.getElementById("apiKey").value = settings.key;
   })();
 
-  // ---------- Settings drawer ----------
   const overlay = document.getElementById("overlay");
-  document.getElementById("settingsBtn").addEventListener("click", () => overlay.classList.add("show"));
-  document.getElementById("closeDrawer").addEventListener("click", () => overlay.classList.remove("show"));
-  overlay.addEventListener("click", (e) => { if (e.target === overlay) overlay.classList.remove("show"); });
+  document.getElementById("settingsBtn").addEventListener("click",
+    () => overlay.classList.add("show"));
+  document.getElementById("closeDrawer").addEventListener("click",
+    () => overlay.classList.remove("show"));
+  overlay.addEventListener("click", e => {
+    if (e.target === overlay) overlay.classList.remove("show");
+  });
 
   document.getElementById("saveSettings").addEventListener("click", () => {
     settings.endpoint = document.getElementById("apiEndpoint").value.trim() || settings.endpoint;
     settings.model = document.getElementById("apiModel").value.trim() || settings.model;
     settings.key = document.getElementById("apiKey").value.trim();
-    const remember = document.getElementById("rememberKey").checked;
-    if (remember) {
-      safeLocalStorageSet("beary_endpoint", settings.endpoint);
-      safeLocalStorageSet("beary_model", settings.model);
-      safeLocalStorageSet("beary_key", settings.key);
+    if (document.getElementById("rememberKey").checked){
+      store.set("beary_endpoint", settings.endpoint);
+      store.set("beary_model", settings.model);
+      store.set("beary_key", settings.key);
     } else {
-      safeLocalStorageRemove("beary_endpoint");
-      safeLocalStorageRemove("beary_model");
-      safeLocalStorageRemove("beary_key");
+      store.del("beary_endpoint"); store.del("beary_model"); store.del("beary_key");
     }
     overlay.classList.remove("show");
     setStatus("Settings saved.", false);
   });
 
-  // ---------- Swap ----------
-  const leftLabel = document.getElementById("leftLabel");
+  // ---------- Panes ----------
+  const leftLabel  = document.getElementById("leftLabel");
   const rightLabel = document.getElementById("rightLabel");
-  const inputText = document.getElementById("inputText");
+  const inputText  = document.getElementById("inputText");
   const outputText = document.getElementById("outputText");
 
-  document.getElementById("swapBtn").addEventListener("click", () => {
-    direction = direction === "en2beary" ? "beary2en" : "en2beary";
-    updateLabels();
-    const tmp = inputText.value;
-    inputText.value = outputText.value;
-    outputText.value = tmp;
-  });
-
   function updateLabels(){
-    if (direction === "en2beary") {
+    if (direction === "en2beary"){
       leftLabel.textContent = "English";
       rightLabel.textContent = "Beary (Roman script)";
       inputText.placeholder = "Type a word, sentence, or paragraph...";
@@ -438,61 +671,187 @@
     }
   }
 
+  document.getElementById("swapBtn").addEventListener("click", () => {
+    direction = direction === "en2beary" ? "beary2en" : "en2beary";
+    updateLabels();
+    const tmp = inputText.value;
+    inputText.value = outputText.value;
+    outputText.value = tmp;
+    document.getElementById("results").innerHTML = "";
+    setStatus("", false);
+  });
+
   document.getElementById("clearBtn").addEventListener("click", () => {
-    inputText.value = "";
-    outputText.value = "";
+    inputText.value = ""; outputText.value = "";
+    document.getElementById("results").innerHTML = "";
     setStatus("", false);
   });
 
   document.getElementById("copyBtn").addEventListener("click", () => {
     if (!outputText.value) return;
-    navigator.clipboard.writeText(outputText.value).then(() => setStatus("Copied to clipboard.", false));
+    navigator.clipboard.writeText(outputText.value)
+      .then(() => setStatus("Copied to clipboard.", false));
   });
 
-  // ---------- Translation ----------
   function setStatus(msg, isError){
     const el = document.getElementById("status");
     el.textContent = msg;
     el.className = "status" + (isError ? " error" : "");
   }
 
-  function buildSystemPrompt(){
-    const lexiconLines = BEARY_LEXICON.map(e =>
-      `${e.english} = ${e.beary_romanized} [${e.confidence}]`
-    ).join("\n");
+  // ---------- Grammar given to the model ----------
+  // Straight from the Academy's own front matter (Editorial, and Prof. B.A.
+  // Viveka Rai's note on phonology), not guessed.
+  const GRAMMAR = [
+    "Beary (Byari) is a Dravidian language of coastal Karnataka (Dakshina Kannada,",
+    "Udupi) and Kasaragod in Kerala. It has no everyday script of its own: ALWAYS",
+    "write Beary in plain Roman letters, never Kannada, Malayalam or Arabic script.",
+    "",
+    "Transliteration used by the dictionary: long vowels are ā ē ī ō ū; ụ is a",
+    "special central vowel; ɛ is the open e of 'men'; ṭ ḍ ṇ are retroflex; ś is",
+    "'sh'; ṅ ñ are the velar and palatal nasals; n' is a distinct alveolar nasal;",
+    "kh, jh and ph occur in Arabic loanwords (jh sounds like 'z', ph like 'f').",
+    "",
+    "Grammar:",
+    "- Word order is Subject-Object-Verb; postpositions, not prepositions; no articles.",
+    "- Feminine is formed with -ti: sorakāra (male worker) / sorakārti (female worker);",
+    "  yajamāna (male owner) / yajamānti (female owner).",
+    "- Plurals take -ṅ, -mār or -rụ: caṅṅāyi (friend) / caṅṅāyimārụ (friends);",
+    "  bālakkāra (young person) / bālakkārụ (young persons); pōṇḍa (he goes) / pōṇḍārụ (they go).",
+    "- Causatives add -bāṭụ or -pāṭụ, which are interchangeable: ākụ (to do) /",
+    "  ākụbāṭụ, ākụpāṭụ (to make someone do); ōḍu (to run) / ōḍụpāṭụ (to make someone run).",
+    "- The endings -ro/-ḍo and -re/-ḍe are interchangeable variants of each other:",
+    "  cellụḍo = cellụro (saying); ākụḍo = ākụro (doing).",
+    "- There are no aspirated consonants in native Beary words.",
+    "- Vocabulary is largely Dravidian, with borrowings from Arabic, Tulu, Kannada,",
+    "  Malayalam and English."
+  ].join("\n");
 
-    return `You are a careful English<->Beary (Byari) translator. Beary is a Dravidian dialect spoken along the Dakshina Kannada/Udupi coast of Karnataka and Manjeshwaram, Kasaragod (Kerala), India. It is Malayalam-vocabulary-based with Tulu/Kannada phonology and grammar, plus nativized Arabic/Persian loanwords. It has no dedicated everyday script; ALWAYS render Beary in plain Roman/English letters (a consistent simple phonetic spelling), never Kannada/Malayalam/Arabic script.
-
-GRAMMAR NOTES (best available, may be incomplete):
-- General Dravidian Subject-Object-Verb word order, postpositions not prepositions, no articles.
-- Sound shifts vs. Malayalam: word-initial v -> b; word-final -a often -> -e; doubled/geminate consonants often simplify to one; retroflex sounds (ḻ, ṇ, ṟ) are not sharply distinguished the way literary Malayalam distinguishes them.
-- Verbs generally do not inflect for person/number the way literary Malayalam does.
-
-STARTER LEXICON (ground truth where it applies -- use these exact forms when the word/phrase matches; confidence "attested" = documented from real sources, "derived" = rule-derived approximation, "uncertain" = flagged low confidence):
-${lexiconLines}
-
-INSTRUCTIONS:
-1. If the input text (or part of it) matches a lexicon entry, use that exact Beary form rather than inventing your own.
-2. For anything not in the lexicon, apply the documented grammar/sound-shift rules above as your best effort, but do NOT sound falsely confident.
-3. Keep sentence meaning and word order natural for the target language.
-4. Respond with ONLY the translation text -- no explanations, no quotes, no extra commentary, unless the input is empty or nonsensical (then say so briefly).
-5. If translating Beary -> English, interpret Roman-script Beary input using the same lexicon and sound-shift rules in reverse.`;
+  // ---------- Prompt building ----------
+  function exactLookup(phrase, dir){
+    if (dir === "en2beary"){
+      const n = normEnglish(phrase);
+      return glossIdx.get(n) || glossIdx.get(n.replace(/^to\s+/,"")) || [];
+    }
+    return bearyIdx.get(foldBeary(phrase)) || [];
   }
 
+  function candidateIndexes(text, dir){
+    // Look every word up, plus 2- and 3-word windows so compound headwords
+    // like "kāḍụ kudurɛ" are found as a unit. An exact hit always outranks a
+    // near miss, so a whole-word match is never buried under compounds that
+    // merely start with the same letters.
+    const words = normEnglish(text).split(" ").filter(Boolean);
+    const found = new Map();
+    const add = (i, weight) => found.set(i, Math.max(found.get(i) || 0, weight));
+
+    const unmatched = [];
+    for (let n = 3; n >= 1; n--){
+      for (let i = 0; i + n <= words.length; i++){
+        const phrase = words.slice(i, i + n).join(" ");
+        if (n === 1 && (STOP.has(phrase) || phrase.length < 2)) continue;
+        const exact = exactLookup(phrase, dir);
+        if (exact.length){
+          for (const idx of exact.slice(0, 6)) add(idx, 10 * n);
+        } else if (n === 1){
+          unmatched.push(phrase);
+        }
+      }
+    }
+    // Only now fall back to near matches, and only for words nothing matched.
+    for (const word of unmatched){
+      for (const idx of lookup(word, dir).slice(0, 4)) add(idx, 1);
+    }
+
+    return [...found.entries()]
+      .sort((a,b) => b[1]-a[1])
+      .slice(0, 70)
+      .map(e => e[0]);
+  }
+
+  function buildSystemPrompt(indexes){
+    const lines = indexes.map(i => {
+      const r = BEARY_LEXICON[i];
+      const pos = POS_NAME[r[P]] ? " (" + POS_NAME[r[P]] + ")" : "";
+      return r[B] + pos + " = " + r[E];
+    }).join("\n");
+
+    return "You are a careful English<->Beary (Byari) translator.\n\n" +
+      GRAMMAR + "\n\n" +
+      "DICTIONARY ENTRIES relevant to this input, taken verbatim from the\n" +
+      "Beary-Kannada-English Lexicon (Karnataka Beary Sahitya Academy, 2017).\n" +
+      "These are authoritative -- prefer them over your own recollection of Beary:\n" +
+      (lines || "(no dictionary entry matched this input)") + "\n\n" +
+      "INSTRUCTIONS:\n" +
+      "1. Use the dictionary forms above verbatim wherever they fit the meaning.\n" +
+      "2. For words not listed, follow the grammar above and keep the spelling\n" +
+      "   consistent with the transliteration scheme. Do not invent confident\n" +
+      "   vocabulary you are unsure of.\n" +
+      "3. Keep the word order natural for the target language (Beary is SOV).\n" +
+      "4. Reply with ONLY the translation. No explanations, no quotes, no notes.";
+  }
+
+  // ---------- Translate ----------
   async function translate(){
     const text = inputText.value.trim();
-    if (!text) { setStatus("Type something to translate.", true); return; }
-    if (!settings.key) { setStatus("Add your API key in Settings (gear icon) first.", true); overlay.classList.add("show"); return; }
+    const box = document.getElementById("results");
+    if (!text){ setStatus("Type something to translate.", true); return; }
+
+    // A single word or short phrase is answered from the dictionary alone.
+    const direct = lookup(text, direction);
+    const isExact = direct.length > 0 && (
+      direction === "en2beary"
+        ? glossIdx.has(normEnglish(text)) ||
+          glossIdx.has(normEnglish(text).replace(/^to\s+/,""))
+        : bearyIdx.has(foldBeary(text))
+    );
+
+    if (isExact){
+      const rows = direct.map(i => BEARY_LEXICON[i]);
+      outputText.value = direction === "en2beary"
+        ? unique(rows.map(r => r[B])).join(", ")
+        : unique(rows.map(r => r[E])).join(" / ");
+      renderEntries("Dictionary entries", direct, null);
+      setStatus("Straight from the Lexicon — no AI involved.", false);
+      return;
+    }
+
+    const isPhrase = text.split(/\s+/).length > 1;
+
+    // A single word with no exact entry: show the nearest things the
+    // dictionary does have rather than sending it to a model.
+    if (!isPhrase){
+      outputText.value = "";
+      if (direct.length){
+        renderEntries("Closest dictionary entries", direct, null);
+        setStatus("No exact entry for that spelling — nearest matches below.", true);
+      } else {
+        box.innerHTML = "";
+        setStatus("Not in the Lexicon.", true);
+      }
+      return;
+    }
+
+    // Otherwise show whatever the dictionary does know, then ask the model.
+    const candidates = candidateIndexes(text, direction);
+    renderEntries("Dictionary entries used as context", candidates,
+      candidates.length ? null : "No dictionary entry matched — the model is on its own here.");
+
+    if (!settings.key){
+      outputText.value = "";
+      setStatus("Sentence translation needs an API key — add one in Settings (gear icon).", true);
+      overlay.classList.add("show");
+      return;
+    }
 
     const btn = document.getElementById("translateBtn");
     const spinner = document.getElementById("spinner");
-    btn.disabled = true;
-    spinner.classList.add("show");
-    setStatus("Translating...", false);
+    btn.disabled = true; spinner.classList.add("show");
+    setStatus("Translating…", false);
 
-    const directionInstruction = direction === "en2beary"
+    const instruction = direction === "en2beary"
       ? "Translate the following ENGLISH text INTO Beary (Roman script)."
-      : "Translate the following BEARY text (given in Roman script) INTO English.";
+      : "Translate the following BEARY text (Roman script) INTO English.";
 
     try {
       const res = await fetch(settings.endpoint, {
@@ -504,40 +863,45 @@ INSTRUCTIONS:
         body: JSON.stringify({
           model: settings.model,
           messages: [
-            { role: "system", content: buildSystemPrompt() },
-            { role: "user", content: directionInstruction + "\n\n" + text }
+            { role: "system", content: buildSystemPrompt(candidates) },
+            { role: "user", content: instruction + "\n\n" + text }
           ],
           temperature: 0.3
         })
       });
 
-      if (!res.ok) {
+      if (!res.ok){
         const errText = await res.text().catch(() => "");
-        throw new Error(`API responded ${res.status}: ${errText.slice(0,200)}`);
+        throw new Error("API responded " + res.status + ": " + errText.slice(0,200));
       }
 
       const data = await res.json();
-      const translation = data?.choices?.[0]?.message?.content?.trim();
-      if (!translation) throw new Error("No translation returned by the API.");
+      const translation = data && data.choices && data.choices[0] &&
+                          data.choices[0].message &&
+                          data.choices[0].message.content;
+      if (!translation || !translation.trim()) throw new Error("No translation returned by the API.");
 
-      outputText.value = translation;
-      setStatus("Done.", false);
-    } catch (err) {
+      outputText.value = translation.trim();
+      setStatus("Model output, grounded on " + candidates.length +
+                " dictionary " + (candidates.length === 1 ? "entry" : "entries") +
+                ". Check anything important.", false);
+    } catch (err){
       console.error(err);
       const msg = String(err.message || err);
-      if (msg.includes("Failed to fetch") || msg.includes("NetworkError") || msg.includes("CORS")) {
-        setStatus("Couldn't reach the API directly from the browser (likely CORS). Check your API endpoint in Settings.", true);
+      if (/Failed to fetch|NetworkError|CORS/.test(msg)){
+        setStatus("Couldn't reach the API from the browser (likely CORS). Check the endpoint in Settings.", true);
       } else {
         setStatus("Error: " + msg, true);
       }
     } finally {
-      btn.disabled = false;
-      spinner.classList.remove("show");
+      btn.disabled = false; spinner.classList.remove("show");
     }
   }
 
+  function unique(arr){ return [...new Set(arr)]; }
+
   document.getElementById("translateBtn").addEventListener("click", translate);
-  inputText.addEventListener("keydown", (e) => {
+  inputText.addEventListener("keydown", e => {
     if ((e.metaKey || e.ctrlKey) && e.key === "Enter") translate();
   });
 
