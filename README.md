@@ -6,8 +6,8 @@ paragraphs.
 
 ## Quick start
 
-1. Open `docs/index.html` directly in your browser (double-click it, or
-   drag it into a browser tab) — or visit the deployed GitHub Pages site.
+1. Open `index.html` directly in your browser (double-click it, or drag it
+   into a browser tab) — or visit the deployed GitHub Pages site.
 2. Click the gear icon (top right) → paste your **DeepSeek API key** → Save.
 3. Type in the left box, click **Translate**. Use the swap button (⇅) to
    flip English → Beary vs Beary → English.
@@ -21,18 +21,20 @@ or proxy is needed.
 
 ## Deploying
 
-The app is fully static, so `docs/` can be served as-is by GitHub Pages:
-Settings → Pages → Deploy from a branch → Branch `main`, folder `/docs`.
+The app is fully static, so the repo root can be served as-is by GitHub
+Pages: Settings → Pages → Deploy from a branch → Branch `main`, folder
+`/ (root)`.
 
 ## Files
 
 | File | Purpose |
 |---|---|
-| `docs/index.html` | The app itself — open this. |
-| `docs/lexicon_data.js` | Starter ~100-word English↔Beary lexicon, loaded by the app and injected into every AI request so translations stay grounded instead of the model guessing freely. |
+| `index.html` | The app itself — open this. |
+| `lexicon_data.js` | Starter ~100-word English↔Beary lexicon, loaded by the app and injected into every AI request so translations stay grounded instead of the model guessing freely. |
 | `lexicon.json` | Same data, plain JSON (for editing/regenerating). |
 | `build_lexicon.py` | Script that generated `lexicon.json` from documented Malayalam→Beary sound-shift rules. Re-run after editing the word list at the top of the file. |
 | `grammar_notes.md` | Grammar/phonology reference used to ground the AI's translations. |
+| `docs/` | Reserved for reference documents (e.g. Nigantu dictionary excerpts) to be added later; not used by the app. |
 
 ## ⚠️ Current limitation: starter vocabulary only
 
