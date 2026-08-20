@@ -208,6 +208,9 @@
     min-height:18px;
   }
   .status.error{color:var(--error);}
+  .report{text-align:center;font-size:12px;margin-top:6px;min-height:16px;}
+  .report a{color:var(--text-dim);text-decoration:underline;}
+  .report a:hover{color:var(--accent);}
 
   /* Dictionary results */
   .results{margin-top:26px;}
@@ -369,6 +372,7 @@
   </div>
 
   <div class="status" id="status"></div>
+  <div class="report" id="report"></div>
 
   <div class="results" id="results"></div>
 </main>
@@ -422,6 +426,7 @@
 </div>
 
 <script src="lexicon_data.js"></script>
+<script src="grammar_data.js"></script>
 <script>
 (function(){
   "use strict";
@@ -484,7 +489,9 @@
 
   for (let i = 0; i < BEARY_LEXICON.length; i++){
     const row = BEARY_LEXICON[i];
-    push(bearyIdx, row[A], i);
+    // The Lexicon brackets variant spellings -- "añci(cɛ)" is añci or añcɛ --
+    // and both are words a user may type, so both are indexed.
+    for (const key of row[A].split("|")) push(bearyIdx, key, i);
     const senses = splitSenses(row[E]);
     for (const sense of senses){
       const n = normEnglish(sense);
@@ -548,11 +555,56 @@
     return [];
   }
 
+  // The Lexicon glosses verbs in the bare form ("Give"), so an inflected input
+  // has to be reduced before it will match anything.
+  const IRREGULAR = {
+    gave:"give", given:"give", went:"go", gone:"go", took:"take", taken:"take",
+    saw:"see", seen:"see", ate:"eat", eaten:"eat", came:"come", did:"do",
+    done:"do", said:"say", made:"make", got:"get", gotten:"get", knew:"know",
+    known:"know", told:"tell", found:"find", gave_up:"give", ran:"run",
+    sat:"sit", stood:"stand", slept:"sleep", drank:"drink", spoke:"speak",
+    spoken:"speak", wrote:"write", written:"write", brought:"bring",
+    bought:"buy", caught:"catch", taught:"teach", thought:"think",
+    heard:"hear", held:"hold", kept:"keep", left:"leave", lost:"lose",
+    paid:"pay", put:"put", read:"read", sold:"sell", sent:"send", built:"build",
+    began:"begin", broke:"break", chose:"choose", fell:"fall", felt:"feel",
+    flew:"fly", forgot:"forget", grew:"grow", cut:"cut", was:"be", were:"be",
+    is:"be", are:"be", am:"be", had:"have", has:"have", children:"child",
+    men:"man", women:"woman", feet:"foot", teeth:"tooth", people:"person"
+  };
+
+  function englishForms(word){
+    const out = [word];
+    if (IRREGULAR[word]) out.push(IRREGULAR[word]);
+    const add = w => { if (w.length > 2 && !out.includes(w)) out.push(w); };
+    if (word.endsWith("ies") && word.length > 4) add(word.slice(0,-3) + "y");
+    if (word.endsWith("es")) add(word.slice(0,-2));
+    if (word.endsWith("s") && !word.endsWith("ss")) add(word.slice(0,-1));
+    if (word.endsWith("ing")){
+      add(word.slice(0,-3));
+      add(word.slice(0,-3) + "e");
+    }
+    if (word.endsWith("ed")){
+      add(word.slice(0,-2));
+      add(word.slice(0,-1));
+    }
+    // "running" -> "run", "stopped" -> "stop"
+    const m = word.match(/^(.*?)([bdgklmnprt])\2(ing|ed)$/);
+    if (m) add(m[1] + m[2]);
+    return out;
+  }
+
   function lookupEnglish(text){
     const n = normEnglish(text);
     if (!n) return [];
     let hits = glossIdx.get(n) || glossIdx.get(n.replace(/^to\s+/,"")) || [];
     if (hits.length) return hits.slice();
+    if (!n.includes(" ")){
+      for (const form of englishForms(n)){
+        const h = glossIdx.get(form);
+        if (h) return h.slice();
+      }
+    }
     const scores = new Map();
     for (const w of n.split(" ")){
       if (STOP.has(w)) continue;
@@ -697,41 +749,124 @@
     const el = document.getElementById("status");
     el.textContent = msg;
     el.className = "status" + (isError ? " error" : "");
+    document.getElementById("report").innerHTML = "";
+  }
+
+  // Sentence output is the part with no source to check it against, so the one
+  // way it gets better is a speaker telling us it is wrong.
+  const REPO = "https://github.com/aamerfaiz/beary-translator";
+  function showReportLink(input, output){
+    const dir = direction === "en2beary" ? "English -> Beary" : "Beary -> English";
+    const body =
+      "**Direction:** " + dir + "\n\n" +
+      "**Input:**\n" + input + "\n\n" +
+      "**What the app produced:**\n" + output + "\n\n" +
+      "**What it should be:**\n(please correct it here)\n\n" +
+      "**Anything else?**\n";
+    const url = REPO + "/issues/new?labels=correction&title=" +
+      encodeURIComponent("Wrong translation: " + input.slice(0, 60)) +
+      "&body=" + encodeURIComponent(body);
+    document.getElementById("report").innerHTML =
+      '<a href="' + url + '" target="_blank" rel="noopener">Wrong? Tell us — ' +
+      'corrections from speakers are how this improves.</a>';
   }
 
   // ---------- Grammar given to the model ----------
-  // Straight from the Academy's own front matter (Editorial, and Prof. B.A.
-  // Viveka Rai's note on phonology), not guessed.
-  const GRAMMAR = [
+  // Identity and spelling. From the Academy's own front matter (the Editorial,
+  // and Prof. B.A. Viveka Rai's note on phonology), not inferred.
+  const IDENTITY = [
     "Beary (Byari) is a Dravidian language of coastal Karnataka (Dakshina Kannada,",
-    "Udupi) and Kasaragod in Kerala. It has no everyday script of its own: ALWAYS",
-    "write Beary in plain Roman letters, never Kannada, Malayalam or Arabic script.",
+    "Udupi) and Kasaragod in Kerala. The Karnataka Beary Sahitya Academy describes",
+    "it as a language in its own right, a sister of Kannada alongside Tulu, Konkani",
+    "and Kodava. It has borrowed from Arabic, Tulu, Kannada, Malayalam and English.",
+    "It has no everyday script of its own: ALWAYS write Beary in plain Roman letters,",
+    "never Kannada, Malayalam or Arabic script.",
     "",
-    "Transliteration used by the dictionary: long vowels are ā ē ī ō ū; ụ is a",
-    "special central vowel; ɛ is the open e of 'men'; ṭ ḍ ṇ are retroflex; ś is",
-    "'sh'; ṅ ñ are the velar and palatal nasals; n' is a distinct alveolar nasal;",
-    "kh, jh and ph occur in Arabic loanwords (jh sounds like 'z', ph like 'f').",
-    "",
-    "Grammar:",
-    "- Word order is Subject-Object-Verb; postpositions, not prepositions; no articles.",
-    "- Feminine is formed with -ti: sorakāra (male worker) / sorakārti (female worker);",
-    "  yajamāna (male owner) / yajamānti (female owner).",
-    "- Plurals take -ṅ, -mār or -rụ: caṅṅāyi (friend) / caṅṅāyimārụ (friends);",
-    "  bālakkāra (young person) / bālakkārụ (young persons); pōṇḍa (he goes) / pōṇḍārụ (they go).",
-    "- Causatives add -bāṭụ or -pāṭụ, which are interchangeable: ākụ (to do) /",
-    "  ākụbāṭụ, ākụpāṭụ (to make someone do); ōḍu (to run) / ōḍụpāṭụ (to make someone run).",
-    "- The endings -ro/-ḍo and -re/-ḍe are interchangeable variants of each other:",
-    "  cellụḍo = cellụro (saying); ākụḍo = ākụro (doing).",
-    "- There are no aspirated consonants in native Beary words.",
-    "- Vocabulary is largely Dravidian, with borrowings from Arabic, Tulu, Kannada,",
-    "  Malayalam and English."
+    "Spelling (the Lexicon's own transliteration -- reproduce it exactly):",
+    "  ā ē ī ō ū are long vowels; ụ is a separate central vowel, NOT the same as u;",
+    "  ɛ is the open e of 'men', NOT the same as e; ṭ ḍ ṇ are retroflex consonants;",
+    "  ś is 'sh'; ṅ and ñ are the velar and palatal nasals; n' is a distinct",
+    "  alveolar nasal, contrasting with n (n'ōkụ 'see', n'āvu 'tongue');",
+    "  kh, jh, ph occur only in Arabic loanwords (jh sounds like 'z', ph like 'f').",
+    "  Native Beary words have no aspirated consonants."
   ].join("\n");
+
+  // What the model must NOT fall back on. Beary is under-documented, so a model
+  // asked for it tends to emit Malayalam, Kannada or Tulu instead. Naming the
+  // failure mode explicitly is the highest-leverage instruction here.
+  const NEGATIVE_CONSTRAINTS = [
+    "- Do NOT emit Malayalam, Kannada or Tulu and call it Beary. They are related",
+    "  but distinct. If you cannot build a word from the entries below, say so",
+    "  rather than substituting a neighbouring language's word.",
+    "- Do NOT borrow Tulu vocabulary in particular. Tulu and Beary share sentence",
+    "  structure but NOT words, and the lookalikes are traps: Tulu 'piravu' is",
+    "  'behind', but Beary 'pirāvu' is a pigeon; Tulu 'nama' is 'we', but Beary",
+    "  'nāma' is a mark worn on the forehead; Tulu 'enna' is 'my', but Beary",
+    "  'enna' is 'counting'.",
+    "- Do NOT flatten the retroflex consonants ṭ ḍ ṇ into t d n, and do NOT",
+    "  collapse ụ into u or ɛ into e. These are separate phonemes of Beary and",
+    "  the distinction is meaningful.",
+    "- Do NOT drop doubled consonants. Gemination is normal in Beary and about a",
+    "  fifth of all headwords carry a doubled consonant (eṭṭụ, illa, okkɛ).",
+    "- Do NOT respell the dictionary's forms into some other romanisation, and do",
+    "  not add or remove diacritics to make a word look tidier.",
+    "- Do NOT invent a confident verb conjugation. Beary verb inflection is not",
+    "  documented (see below); prefer the citation form over a guessed one."
+  ].join("\n");
+
+  // Build the grammar section out of the generated pack, so the prompt always
+  // matches whatever the dictionary actually attests.
+  function grammarSection(){
+    const G = (typeof BEARY_GRAMMAR !== "undefined") ? BEARY_GRAMMAR : null;
+    if (!G) return "";
+    const out = [];
+
+    out.push("SENTENCE STRUCTURE (shared Dravidian pattern; Beary builds sentences");
+    out.push("the way Tulu does, even though the words are entirely different):");
+    for (const r of G.syntax.rules) out.push("- " + r);
+    out.push("");
+    out.push("NOT ESTABLISHED for Beary -- do not fake precision here:");
+    for (const g of G.syntax.known_gaps) out.push("- " + g);
+    out.push("");
+
+    out.push("WORD BUILDING (suffixes, each attested in the Lexicon):");
+    for (const s of G.suffixes){
+      out.push(`- ${s.name}: ${s.suffix} -- ${s.gloss}`);
+      for (const ex of s.examples) out.push("    e.g. " + ex);
+    }
+    out.push("");
+
+    const slot = (title, items) => {
+      if (!items || !items.length) return;
+      out.push(title + " (attested Beary forms -- use these, not a neighbouring");
+      out.push("language's equivalents):");
+      for (const it of items){
+        out.push(`- ${it.meaning}: ${it.beary.join(", ")}`);
+      }
+      out.push("");
+    };
+    slot("PRONOUNS AND CASE FORMS", G.pronouns);
+    slot("QUESTION WORDS", G.question_words);
+    slot("POSTPOSITIONS", G.postpositions);
+    slot("FUNCTION WORDS", G.function_words);
+    slot("NUMERALS", G.numerals);
+
+    return out.join("\n");
+  }
 
   // ---------- Prompt building ----------
   function exactLookup(phrase, dir){
     if (dir === "en2beary"){
       const n = normEnglish(phrase);
-      return glossIdx.get(n) || glossIdx.get(n.replace(/^to\s+/,"")) || [];
+      let hit = glossIdx.get(n) || glossIdx.get(n.replace(/^to\s+/,""));
+      if (hit) return hit;
+      if (!n.includes(" ")){
+        for (const form of englishForms(n)){
+          hit = glossIdx.get(form);
+          if (hit) return hit;
+        }
+      }
+      return [];
     }
     return bearyIdx.get(foldBeary(phrase)) || [];
   }
@@ -776,19 +911,40 @@
       return r[B] + pos + " = " + r[E];
     }).join("\n");
 
-    return "You are a careful English<->Beary (Byari) translator.\n\n" +
-      GRAMMAR + "\n\n" +
-      "DICTIONARY ENTRIES relevant to this input, taken verbatim from the\n" +
-      "Beary-Kannada-English Lexicon (Karnataka Beary Sahitya Academy, 2017).\n" +
-      "These are authoritative -- prefer them over your own recollection of Beary:\n" +
-      (lines || "(no dictionary entry matched this input)") + "\n\n" +
-      "INSTRUCTIONS:\n" +
-      "1. Use the dictionary forms above verbatim wherever they fit the meaning.\n" +
-      "2. For words not listed, follow the grammar above and keep the spelling\n" +
-      "   consistent with the transliteration scheme. Do not invent confident\n" +
-      "   vocabulary you are unsure of.\n" +
-      "3. Keep the word order natural for the target language (Beary is SOV).\n" +
-      "4. Reply with ONLY the translation. No explanations, no quotes, no notes.";
+    return [
+      "You are a careful English<->Beary (Byari) translator.",
+      "",
+      IDENTITY,
+      "",
+      "=== WHAT NOT TO DO ===",
+      NEGATIVE_CONSTRAINTS,
+      "",
+      "=== HOW BEARY SENTENCES WORK ===",
+      grammarSection(),
+      "=== DICTIONARY ENTRIES FOR THIS INPUT ===",
+      "Verbatim from the Beary-Kannada-English Lexicon (Karnataka Beary Sahitya",
+      "Academy, 2017). These are authoritative. Prefer them over your own",
+      "recollection of Beary, which is unreliable for a language this small:",
+      lines || "(no dictionary entry matched this input)",
+      "",
+      "=== HOW TO ANSWER ===",
+      "1. Use the dictionary forms above verbatim wherever they fit the meaning.",
+      "2. Put the verb last and let relators follow their noun.",
+      "3. For anything not listed, prefer a phrasing you can build from the words",
+      "   above over a word you are guessing at.",
+      "",
+      "Before you answer, check your draft once:",
+      "  (a) verb last, relators after their noun, no articles;",
+      "  (b) every Beary word either came from the entries above or is built from",
+      "      one with a suffix listed above;",
+      "  (c) no Malayalam, Kannada or Tulu word has slipped in;",
+      "  (d) diacritics copied exactly -- ụ, ɛ, ṭ, ḍ, ṇ, ś, ṅ, ñ, n' intact,",
+      "      doubled consonants still doubled;",
+      "  (e) plain Roman script throughout.",
+      "If any check fails, fix it silently and answer with the corrected version.",
+      "",
+      "Reply with ONLY the translation. No explanations, no quotes, no notes."
+    ].join("\n");
   }
 
   // ---------- Translate ----------
@@ -798,16 +954,13 @@
     if (!text){ setStatus("Type something to translate.", true); return; }
 
     // A single word or short phrase is answered from the dictionary alone.
-    const direct = lookup(text, direction);
-    const isExact = direct.length > 0 && (
-      direction === "en2beary"
-        ? glossIdx.has(normEnglish(text)) ||
-          glossIdx.has(normEnglish(text).replace(/^to\s+/,""))
-        : bearyIdx.has(foldBeary(text))
-    );
+    // exactLookup also handles English inflection ("gave" -> "give") and the
+    // Lexicon's bracketed spelling variants, so both count as exact.
+    const exact = exactLookup(text, direction);
+    const direct = exact.length ? exact : lookup(text, direction);
 
-    if (isExact){
-      const rows = direct.map(i => BEARY_LEXICON[i]);
+    if (exact.length){
+      const rows = exact.map(i => BEARY_LEXICON[i]);
       outputText.value = direction === "en2beary"
         ? unique(rows.map(r => r[B])).join(", ")
         : unique(rows.map(r => r[E])).join(" / ");
@@ -885,6 +1038,7 @@
       setStatus("Model output, grounded on " + candidates.length +
                 " dictionary " + (candidates.length === 1 ? "entry" : "entries") +
                 ". Check anything important.", false);
+      showReportLink(text, outputText.value);
     } catch (err){
       console.error(err);
       const msg = String(err.message || err);

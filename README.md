@@ -44,10 +44,13 @@ Typing works with or without diacritics: `tanni` and `tan'ni` both find
 | `index.html` | The app — open this. |
 | `lexicon_data.js` | Generated. 17,234 entries as `[beary, ascii, english, pos, seeAlso]`. Loaded by a `<script>` tag so the app works from `file://`. |
 | `data/dictionary.json` | Generated. Full extraction, including page numbers and provenance flags. |
-| `grammar_notes.md` | Phonology and grammar, sourced from the Academy's own front matter. |
+| `grammar_data.js` | Generated. The grammar injected into sentence prompts. |
+| `data/grammar_pack.json` | Generated. Pronouns, case forms, question words, postpositions and numerals mined from the Lexicon, each with the gloss and page it came from. |
+| `grammar_notes.md` | Phonology and grammar, from the Academy's front matter plus the paradigms recovered from the Lexicon. |
 | `tools/extract_dictionary.py` | Extracts `data/dictionary.json` from `docs/Dictionary.PDF`. |
 | `tools/build_lexicon.py` | Builds `lexicon_data.js` from `data/dictionary.json`. |
-| `docs/` | The two source PDFs, plus `RELEASE-NOTES.md`. |
+| `tools/build_grammar_pack.py` | Builds the grammar pack from `data/dictionary.json`. |
+| `docs/` | The two source PDFs, plus the release notes. |
 
 To rebuild the data from the PDFs:
 
@@ -55,6 +58,7 @@ To rebuild the data from the PDFs:
 pip install pymupdf
 python3 tools/extract_dictionary.py   # -> data/dictionary.json
 python3 tools/build_lexicon.py        # -> lexicon_data.js
+python3 tools/build_grammar_pack.py   # -> data/grammar_pack.json + grammar_data.js
 ```
 
 ## About the extraction
@@ -75,6 +79,24 @@ Data quality is checked by the dictionary against itself: variant forms are
 cross-referenced reciprocally and should share a meaning. **96.7%** of the
 7,892 resolvable cross-references agree; the remainder are cases where the same
 sense is worded differently in the two entries.
+
+## Sentence translation
+
+Sentences are assembled by the model from four things: what Beary is and how it
+is spelled, an explicit list of what *not* to fall back on (a model asked for a
+language this small tends to emit Malayalam, Kannada or Tulu instead), how Beary
+sentences are structured, and the dictionary entries matching your input. The
+model then re-checks its own draft before answering.
+
+Beary and Tulu share sentence structure but not vocabulary, so the structure is
+modelled on Tulu while every actual word comes from the Lexicon. The lookalikes
+are genuine traps — Tulu *piravu* is "behind", Beary *pirāvu* is a pigeon — and
+the prompt names them. See `docs/RELEASE-NOTES-PHASE2.md`.
+
+Verb conjugation is the known gap: the Academy states no Beary grammar has been
+written, and the Lexicon lists verbs in citation form only. The model is told
+not to invent one. Corrections from speakers are welcome — sentence output
+carries a link that opens a pre-filled issue.
 
 ## Deploying
 

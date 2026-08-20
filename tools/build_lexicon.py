@@ -11,7 +11,10 @@ Rows are arrays rather than objects to keep the file small:
     [beary, ascii, english, pos, seeAlso]
 
       beary    Roman transliteration exactly as printed in the Lexicon
-      ascii    same word with diacritics folded away, for typing and search
+      ascii    same word with diacritics folded away, for typing and search.
+               Where the Lexicon brackets a variant -- "añci(cɛ)" means añci or
+               añcɛ -- every spelling a user might type is included, separated
+               by "|", so both reach the entry.
       english  the English gloss, verbatim
       pos      "n" noun, "v" verb, "" not marked in the source
       seeAlso  variant forms, omitted when there are none
@@ -48,7 +51,8 @@ def main():
 
     rows = []
     for e in entries:
-        row = [e["beary"], e["beary_ascii"], e["english"],
+        keys = e.get("ascii_variants") or [e["beary_ascii"]]
+        row = [e["beary"], "|".join(keys), e["english"],
                POS_CODE.get(e["pos"], "")]
         if e.get("see_also"):
             row.append(e["see_also"])

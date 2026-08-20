@@ -129,6 +129,168 @@ that blank means "not marked in the source", not "unknown word".
 - The Lexicon documents **about 20,000 words** and the editors describe it as a
   first pass, expecting corrections in later editions.
 
+## 7. Paradigms recovered from the Lexicon
+
+The Academy states that no grammar of Beary has been written, and the Lexicon
+is a word list, not a grammar. But a word list of 17,234 entries glossed in
+English contains a great deal of grammar implicitly: an entry glossed "To him"
+is a dative pronoun whether or not anyone labelled it one.
+
+Everything below was mined from `data/dictionary.json` by
+`tools/build_grammar_pack.py` and is an attested headword of the Lexicon. Each
+form in `data/grammar_pack.json` carries the gloss and page it came from, so
+any line here can be checked against the printed dictionary.
+
+One filter does most of the work. The Academy tags **only nouns and verbs**,
+leaving "pronoun, adjective, adverb, interjections" untagged — so an untagged
+entry is the more likely function word, and a noun- or verb-tagged entry that
+matched a one-word gloss is usually English ambiguity. That is what separates
+the possessive "mine" from `kani`, `gani`, a mine you dig, and the postposition
+"like" from `meccụ`, the verb.
+
+### Pronouns and case
+
+| meaning | Beary |
+|---|---|
+| I / me | ñānụ, n'ān'ụ |
+| you (singular) | n'iṅa, n'iṅalụ, n'ī, n'īnụ |
+| he | avonu, avnu, ānu, ōnu |
+| she | avolu, īma, ōlu, vōlu |
+| we | ñaṅa, n'aṅa, ñammo |
+| they | aṅa, avorụ, ōrụ, ayālụ |
+| this | ī, idụ |
+| that | adụ, ā |
+| oneself | tānē |
+| to me (dative) | n'akkụ |
+| to you (dative) | n'iṅkụ, n'ikkụ |
+| to him (dative) | ōnugu |
+| to them (dative) | aṅogu, aṅkụ(ku) |
+| us (accusative) | n'aṅale |
+| your / yours (genitive) | niṇḍo, n'iṅalo |
+| his (genitive) | avu(vo)ṇḍo, ōnḍo |
+| her (genitive) | ōlo, ōlɛ |
+
+Case is marked by a suffix, and the pattern is visible across the paradigm:
+
+- **dative** `-kụ` / `-gu` — n'akkụ (to me), n'iṅkụ (to you), ōnugu (to him), aṅogu (to them)
+- **genitive** `-ḍo` / `-o` — n'aṇḍo (my), niṇḍo (your), ōnḍo (his), ōlo (her)
+- **accusative** `-e` / `-le` — n'aṅale (us)
+
+Note how prominent the distinct alveolar nasal `n'` is in this paradigm. It is
+not interchangeable with `n`.
+
+### Question words
+
+| meaning | Beary |
+|---|---|
+| who | ārụ, āradụ, ārārụ |
+| whom | āre |
+| whose | ārụḍo(ro), āro |
+| what | endo(de), endre(dro), yānto |
+| where | eññɛ, eññe, evuḍɛ, ōḍɛ |
+| when | eṇḍụ, eppa |
+| why | endi |
+| how | eṅanɛ |
+| how much | ettarɛ |
+
+Interrogatives are built on a common frame: most begin with **e-**
+(eññɛ, eṇḍụ, endi, eṅanɛ, ettarɛ, endo), and the who/whose group begins with
+**ā-** (ārụ, āre, āro). The Lexicon prints them with a following "?".
+
+### Postpositions
+
+These follow their noun. English puts the relator first ("in the house");
+Beary puts it last (house + ulga).
+
+| meaning | Beary |
+|---|---|
+| in front of | edụrụlụ, edụrụ |
+| behind | perovu |
+| near | muṭṭa, aḍka |
+| inside | ulga, ullulu |
+| outside | partụ, partụgụ |
+| above / on | mīta, mēlụ, mōllụ, mēlụgụ |
+| under / below | tayattụ, tāyɛ, kīlụ, aḍi |
+| together / with | āgēlụ, okkɛ, oṭṭugu, kūḍɛ |
+| without | illāmɛ |
+| instead of | pagarāyiṭṭụ, badalụgụ |
+| through | mukāntara, mūlaka, tarapụ |
+| around | āsụpāsụ |
+| beside | bāju, ottulu, pakkattụ |
+| after | bayyɛ, pin'netto, mun'nolu |
+| before | ī mun'nolu, mun'nolu |
+
+### Function words
+
+| meaning | Beary |
+|---|---|
+| is / exists | uṇḍu |
+| having | ullo |
+| no / not | alla, illa, iḷlɛ, āvullɛ |
+| yes | aytụ, āyittụ, okku, āyi |
+| and / then | pin'nɛ, appa, bayyɛ |
+
+### Numerals
+
+| meaning | Beary |
+|---|---|
+| 1 | on'nu, oru, vāhidụ |
+| 2 | jaṇḍụ |
+| 3 | mūn'u |
+| 4 | n'ālụ |
+| 5 | añji |
+| 6 | ārụ |
+| 7 | ēlụ |
+| 8 | eṭṭụ |
+| 9 | oliṃbo |
+| 10 | pattụ |
+| 100 | n'ūru |
+| 1000 | āyira |
+| first | ādyatto, on'nane, on'nāmatto, toḍakatto |
+| second | jaṇḍane, jaṇḍāmatto |
+| third | mūn'ane, mūn'āmatto |
+
+Ordinals are formed from the cardinal with **-ane** or **-āmatto**, and both
+occur for the same number: on'nu (one) → on'nane, on'nāmatto (first); ārụ (six)
+→ ārane, ārāmatto (sixth).
+
+## 8. What the Lexicon does not tell us
+
+**Verb inflection.** The Lexicon lists verbs in a citation form only, and
+tense/person marking is not recoverable from it. Only a couple of entries hint
+at it at all (uṇḍɛ "I have eaten", beccɛ "I have kept it"). Beary verb citation
+forms end overwhelmingly in **-kụ** (417), **-ṭụ** (343) and **-ḍụ** (134).
+
+This is the single biggest remaining gap, and it cannot be filled from the
+sources in this repo. It needs a speaker.
+
+## 9. On using Tulu as a model
+
+Beary and Tulu share sentence structure — verb last, relators after the noun,
+case as a suffix — and Tulu's grammar is far better documented. That structure
+is worth borrowing.
+
+Tulu **words** are not. Tested against this Lexicon, only 23% of the Tulu forms
+in a published Tulu grammar scaffold appear in Beary at all, and most of those
+that do mean something else entirely:
+
+| Tulu | means | but Beary | means |
+|---|---|---|---|
+| piravu | behind | pirāvu | pigeon |
+| nama | we (inclusive) | nāma | mark worn on the forehead |
+| enna | my | enna | counting |
+| idi | throughout | iḍi | thunder |
+| muta | up to, till | mūta | elder |
+| aye | he (remote) | āyɛ̄ | did you become? |
+
+Tulu's entire case-marked pronoun paradigm (yAn, enk, enna, ninan, nikk, imbe,
+akulu, eer) is absent from Beary, which has its own, given above. Tulu's verb
+conjugation classes key on verbs ending in *-pu* and *-N*, which does not
+describe Beary verbs either.
+
+So: take the sentence pattern from Tulu, take every actual word from the
+Lexicon, and never the other way round.
+
 ## Sources
 
 - `docs/Dictionary.PDF` — Beary–Kannada–English Lexicon, 752 pages of entries.
