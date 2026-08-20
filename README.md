@@ -80,6 +80,17 @@ cross-referenced reciprocally and should share a meaning. **96.7%** of the
 7,892 resolvable cross-references agree; the remainder are cases where the same
 sense is worded differently in the two entries.
 
+## Varieties
+
+Beary differs by region, and the app follows one split: the genitive and
+verbal-noun suffix is **-ro** around Mangalore city and Ullal, **-ḍo** further
+north around Udupi. Pick one in Settings; the city variety is the default.
+
+The two are mechanically convertible because the alternation only happens after
+a vowel — after a nasal both varieties say `-ḍo`, so `n'aṇḍo` ("my") never
+changes. The Lexicon bears this out with no exceptions across 17,234 entries.
+Search accepts either spelling regardless of the setting.
+
 ## Sentence translation
 
 Sentences are assembled by the model from four things: what Beary is and how it
@@ -93,10 +104,12 @@ modelled on Tulu while every actual word comes from the Lexicon. The lookalikes
 are genuine traps — Tulu *piravu* is "behind", Beary *pirāvu* is a pigeon — and
 the prompt names them. See `docs/RELEASE-NOTES-PHASE2.md`.
 
-Verb conjugation is the known gap: the Academy states no Beary grammar has been
-written, and the Lexicon lists verbs in citation form only. The model is told
-not to invent one. Corrections from speakers are welcome — sentence output
-carries a link that opens a pre-filled issue.
+The prompt also carries grammar the dictionary does not contain — case
+suffixes, the verb paradigm, negation, dative subjects and question formation —
+supplied by a speaker and documented in `grammar_notes.md` §10. It covers two
+verbs, so it is honest about its own limits rather than complete. Corrections
+from speakers are welcome; sentence output carries a link that opens a
+pre-filled issue.
 
 ## Deploying
 

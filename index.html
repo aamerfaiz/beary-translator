@@ -294,6 +294,17 @@
   }
   .field input:focus{border-color:var(--accent-dim);}
   .field .hint{font-size:11px;color:var(--text-dim);margin-top:5px;line-height:1.5;}
+  .seg-row{display:flex;gap:8px;margin-bottom:6px;}
+  .seg{
+    flex:1;background:var(--panel-2);border:1px solid var(--border);
+    color:var(--text-dim);padding:9px 8px;border-radius:8px;
+    font-size:13px;cursor:pointer;text-align:center;font-family:inherit;
+  }
+  .seg:hover{color:var(--text);}
+  .seg.on{
+    background:rgba(79,140,255,0.14);border-color:var(--accent-dim);
+    color:var(--text);font-weight:600;
+  }
   .checkbox-row{
     display:flex;align-items:center;gap:8px;
     font-size:13px;color:var(--text-dim);margin-bottom:18px;
@@ -389,6 +400,17 @@
     <h2>Settings</h2>
     <p class="sub">Only needed for full-sentence translation. Dictionary lookup
       works without a key. Your key stays in this browser.</p>
+
+    <div class="field">
+      <label>Variety</label>
+      <div class="seg-row" id="dialectRow">
+        <button class="seg" data-dialect="south" type="button">Mangalore city</button>
+        <button class="seg" data-dialect="north" type="button">Udupi / north</button>
+      </div>
+      <div class="hint">Chooses <b>-ro</b> or <b>-ḍo</b> on possessives and verbal
+        nouns: <i>abbaro</i> vs <i>abbaḍo</i> ("father's"). After a nasal both
+        varieties say -ḍo, so <i>n'aṇḍo</i> ("my") never changes.</div>
+    </div>
 
     <div class="field">
       <label for="apiEndpoint">API Endpoint</label>
@@ -511,6 +533,25 @@
     BEARY_LEXICON.length.toLocaleString();
 
   // ---------- Lookup ----------
+  // ---------- Dialect ----------
+  // The genitive and verbal-noun suffix is -ro around Mangalore city and Ullal,
+  // -ḍo further north around Udupi. Same suffix, different region. It only
+  // alternates after a vowel: after a nasal, ro is impossible and both
+  // varieties say ḍo, which is why "n'aṇḍo" (my) is never "n'aṇro".
+  const VOWELS = "aāiīuūụeēɛoō";
+  const RE_BRACKETED = new RegExp("ḍ([oɛe])\\(r([oɛe])\\)", "g");
+  const RE_BARE_DO = new RegExp("([" + VOWELS + "])ḍ([oɛe])$");
+  const RE_BARE_RO = new RegExp("([" + VOWELS + "])r([oɛe])$");
+
+  function toDialect(word, dialect){
+    if (dialect === "south"){
+      return word.replace(RE_BRACKETED, (m, a, b) => "r" + b)
+                 .replace(RE_BARE_DO, "$1r$2");
+    }
+    return word.replace(RE_BRACKETED, (m, a) => "ḍ" + a)
+               .replace(RE_BARE_RO, "$1ḍ$2");
+  }
+
   const bearyKeys = [...bearyIdx.keys()].sort();
 
   // First key at or after `prefix`, by binary search.
@@ -533,11 +574,36 @@
     return out;
   }
 
+  // Case suffixes, longest first so "-kku" is tried before "-ku". Written in
+  // folded ASCII because that is what the index is keyed on.
+  const CASE_SUFFIXES = [
+    ["kku", "dative"], ["nku", "dative"], ["gu", "dative"], ["ku", "dative"],
+    ["ro", "genitive"], ["do", "genitive"], ["ndo", "genitive"],
+    ["lu", "locative"],
+  ];
+
+  // "abbaro" is not a headword -- "abba" (father) is, with the genitive on it.
+  // Peel one case suffix and see if what is left is a real word.
+  function stripCase(key){
+    for (const [suffix, name] of CASE_SUFFIXES){
+      if (key.length > suffix.length + 1 && key.endsWith(suffix)){
+        const stem = key.slice(0, -suffix.length);
+        for (const candidate of [stem, stem + "u", stem + "a"]){
+          const hit = bearyIdx.get(candidate);
+          if (hit) return { indexes: hit.slice(), stem: candidate, suffix, name };
+        }
+      }
+    }
+    return null;
+  }
+
   function lookupBeary(text){
     const key = foldBeary(text);
     if (!key) return [];
     const exact = bearyIdx.get(key);
     if (exact) return exact.slice();
+    const cased = stripCase(key);
+    if (cased) return cased.indexes;
 
     // Words the dictionary lists in a longer form: match on what was typed.
     let hits = prefixMatches(key, 10);
@@ -624,31 +690,45 @@
   // ---------- Rendering ----------
   const POS_NAME = {n:"noun", v:"verb"};
 
+  let lastRender = null;   // what the results panel is showing
+  let lastExact = null;    // indexes behind a straight-from-the-Lexicon answer
+
+  function rerender(){
+    if (lastRender) renderEntries(lastRender.t, lastRender.i, lastRender.n);
+    if (lastExact && direction === "en2beary"){
+      outputText.value = unique(lastExact.map(
+        i => toDialect(BEARY_LEXICON[i][B], settings.dialect))).join(", ");
+    }
+  }
+
   function renderEntries(title, indexes, note){
+    lastRender = { t: title, i: indexes, n: note };
     const box = document.getElementById("results");
     if (!indexes.length){ box.innerHTML = ""; return; }
-    const seen = new Set();
-    const rows = [];
-    for (const i of indexes){
-      if (seen.has(i)) continue;
-      seen.add(i);
-      rows.push(BEARY_LEXICON[i]);
-      if (rows.length >= 12) break;
-    }
+    const rows = rank(indexes).slice(0, 12).map(i => BEARY_LEXICON[i]);
     let html = "<h2>" + title + "</h2>";
     for (const r of rows){
       html += '<div class="entry">';
-      html += '<span class="word">' + esc(r[B]) + "</span>";
+      html += '<span class="word">' + esc(toDialect(r[B], settings.dialect)) + "</span>";
       if (POS_NAME[r[P]]) html += '<span class="pos">' + POS_NAME[r[P]] + "</span>";
       html += '<div class="gloss">' + esc(r[E]) + "</div>";
       if (r[S] && r[S].length){
         html += '<div class="variants"><b>also:</b> ' +
-                r[S].map(esc).join(" · ") + "</div>";
+                r[S].map(v => esc(toDialect(v, settings.dialect))).join(" · ") + "</div>";
       }
       html += "</div>";
     }
     if (note) html += '<div class="more">' + esc(note) + "</div>";
     box.innerHTML = html;
+  }
+
+  // The Academy tags only nouns and verbs and leaves pronouns, postpositions
+  // and the like untagged, so an untagged entry is the likelier function word.
+  // This puts "To me" ahead of "Lick" for n'akkụ.
+  function rank(indexes){
+    const out = [...new Set(indexes)];
+    out.sort((a, b) => (BEARY_LEXICON[a][P] ? 1 : 0) - (BEARY_LEXICON[b][P] ? 1 : 0));
+    return out;
   }
 
   function esc(s){
@@ -660,7 +740,10 @@
   let settings = {
     endpoint: "https://api.deepseek.com/chat/completions",
     model: "deepseek-chat",
-    key: ""
+    key: "",
+    // Mangalore city / Ullal say -ro; Udupi and north say -ḍo. City is the
+    // larger population, so it is the default.
+    dialect: "south"
   };
   let direction = "en2beary";
 
@@ -676,6 +759,9 @@
     if (ep) settings.endpoint = ep;
     if (md) settings.model = md;
     if (ky){ settings.key = ky; document.getElementById("rememberKey").checked = true; }
+    const dl = store.get("beary_dialect");
+    if (dl === "north" || dl === "south") settings.dialect = dl;
+    applyDialectButtons();
     document.getElementById("apiEndpoint").value = settings.endpoint;
     document.getElementById("apiModel").value = settings.model;
     document.getElementById("apiKey").value = settings.key;
@@ -703,6 +789,21 @@
     }
     overlay.classList.remove("show");
     setStatus("Settings saved.", false);
+  });
+
+  function applyDialectButtons(){
+    for (const btn of document.querySelectorAll("#dialectRow .seg")){
+      btn.classList.toggle("on", btn.dataset.dialect === settings.dialect);
+    }
+  }
+
+  document.getElementById("dialectRow").addEventListener("click", e => {
+    const btn = e.target.closest(".seg");
+    if (!btn) return;
+    settings.dialect = btn.dataset.dialect;
+    store.set("beary_dialect", settings.dialect);
+    applyDialectButtons();
+    rerender();
   });
 
   // ---------- Panes ----------
@@ -736,6 +837,7 @@
   document.getElementById("clearBtn").addEventListener("click", () => {
     inputText.value = ""; outputText.value = "";
     document.getElementById("results").innerHTML = "";
+    forgetRender();
     setStatus("", false);
   });
 
@@ -751,6 +853,8 @@
     el.className = "status" + (isError ? " error" : "");
     document.getElementById("report").innerHTML = "";
   }
+
+  function forgetRender(){ lastRender = null; lastExact = null; }
 
   // Sentence output is the part with no source to check it against, so the one
   // way it gets better is a speaker telling us it is wrong.
@@ -810,8 +914,10 @@
     "  fifth of all headwords carry a doubled consonant (eṭṭụ, illa, okkɛ).",
     "- Do NOT respell the dictionary's forms into some other romanisation, and do",
     "  not add or remove diacritics to make a word look tidier.",
-    "- Do NOT invent a confident verb conjugation. Beary verb inflection is not",
-    "  documented (see below); prefer the citation form over a guessed one."
+    "- Do NOT agree the verb with the subject for 1st vs 2nd person. 'I' and",
+    "  'you' take the SAME verb form in Beary; only 3rd person differs.",
+    "- Do NOT go far beyond the verb paradigm given below. It covers two verbs;",
+    "  follow its shape and say so if you are unsure rather than inventing tense."
   ].join("\n");
 
   // Build the grammar section out of the generated pack, so the prompt always
@@ -845,6 +951,46 @@
       }
       out.push("");
     };
+    // Grammar a speaker gave us. The Lexicon has none of the verb paradigm --
+    // it lists citation forms only -- so this is the only source for it.
+    const K = G.speaker;
+    if (K){
+      out.push("CASE (suffix glued to the noun or pronoun):");
+      for (const c of K.case){
+        out.push(`- ${c.case}: ${c.suffix}`);
+        out.push("    " + c.examples.join(" · "));
+        if (c.note) out.push("    note: " + c.note);
+      }
+      out.push("");
+
+      out.push("VERBS. " + K.verbs.shape + ".");
+      for (const t of K.verbs.tense_markers) out.push("- " + t);
+      for (const e of K.verbs.person_endings) out.push("- " + e);
+      out.push("  Worked paradigm for " + K.verbs.paradigm_go.stem + ":");
+      for (const f of K.verbs.paradigm_go.forms) out.push("    " + f);
+      out.push("  And for " + K.verbs.paradigm_give.stem + ":");
+      for (const f of K.verbs.paradigm_give.forms) out.push("    " + f);
+      out.push("");
+
+      out.push("NEGATION. " + K.negation.rule);
+      out.push("    " + K.negation.examples.join(" · ") + "  (" + K.negation.note + ")");
+      out.push("");
+
+      out.push("DATIVE SUBJECT. " + K.dative_subject.rule);
+      out.push("    " + K.dative_subject.examples.join(" · "));
+      out.push("    " + K.dative_subject.note);
+      out.push("");
+
+      out.push("QUESTIONS.");
+      out.push("- yes/no: " + K.questions.yes_no);
+      out.push("- wh: " + K.questions.wh);
+      out.push("");
+
+      out.push("DIALECT. " + K.dialect.rule);
+      out.push("    " + K.dialect.examples.join(" · "));
+      out.push("");
+    }
+
     slot("PRONOUNS AND CASE FORMS", G.pronouns);
     slot("QUESTION WORDS", G.question_words);
     slot("POSTPOSITIONS", G.postpositions);
@@ -908,7 +1054,7 @@
     const lines = indexes.map(i => {
       const r = BEARY_LEXICON[i];
       const pos = POS_NAME[r[P]] ? " (" + POS_NAME[r[P]] + ")" : "";
-      return r[B] + pos + " = " + r[E];
+      return toDialect(r[B], settings.dialect) + pos + " = " + r[E];
     }).join("\n");
 
     return [
@@ -928,6 +1074,10 @@
       lines || "(no dictionary entry matched this input)",
       "",
       "=== HOW TO ANSWER ===",
+      "0. Write the " + (settings.dialect === "south"
+          ? "SOUTHERN (Mangalore city) variety: use -ro on possessives and verbal nouns"
+          : "NORTHERN (Udupi) variety: use -ḍo on possessives and verbal nouns") +
+        ", except after a nasal, where -ḍo is the only possibility.",
       "1. Use the dictionary forms above verbatim wherever they fit the meaning.",
       "2. Put the verb last and let relators follow their noun.",
       "3. For anything not listed, prefer a phrasing you can build from the words",
@@ -940,7 +1090,9 @@
       "  (c) no Malayalam, Kannada or Tulu word has slipped in;",
       "  (d) diacritics copied exactly -- ụ, ɛ, ṭ, ḍ, ṇ, ś, ṅ, ñ, n' intact,",
       "      doubled consonants still doubled;",
-      "  (e) plain Roman script throughout.",
+      "  (e) plain Roman script throughout;",
+      "  (f) 1st and 2nd person share one verb form, 3rd person ends -a;",
+      "  (g) the -ro/-ḍo choice matches the variety asked for above.",
       "If any check fails, fix it silently and answer with the corrected version.",
       "",
       "Reply with ONLY the translation. No explanations, no quotes, no notes."
@@ -960,9 +1112,10 @@
     const direct = exact.length ? exact : lookup(text, direction);
 
     if (exact.length){
-      const rows = exact.map(i => BEARY_LEXICON[i]);
+      lastExact = rank(exact);
+      const rows = lastExact.map(i => BEARY_LEXICON[i]);
       outputText.value = direction === "en2beary"
-        ? unique(rows.map(r => r[B])).join(", ")
+        ? unique(rows.map(r => toDialect(r[B], settings.dialect))).join(", ")
         : unique(rows.map(r => r[E])).join(" / ");
       renderEntries("Dictionary entries", direct, null);
       setStatus("Straight from the Lexicon — no AI involved.", false);
@@ -975,7 +1128,14 @@
     // dictionary does have rather than sending it to a model.
     if (!isPhrase){
       outputText.value = "";
-      if (direct.length){
+      const cased = direction === "beary2en" ? stripCase(foldBeary(text)) : null;
+      if (cased){
+        outputText.value = unique(cased.indexes.map(i => BEARY_LEXICON[i][E])).join(" / ");
+        lastExact = null;
+        renderEntries("Stem", cased.indexes, null);
+        setStatus(text + " = " + cased.stem + " + -" + cased.suffix +
+                  " (" + cased.name + ")", false);
+      } else if (direct.length){
         renderEntries("Closest dictionary entries", direct, null);
         setStatus("No exact entry for that spelling — nearest matches below.", true);
       } else {

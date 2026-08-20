@@ -166,3 +166,134 @@ python3 tools/extract_dictionary.py
 python3 tools/build_lexicon.py
 python3 tools/build_grammar_pack.py
 ```
+
+---
+
+# Update — grammar from a speaker, and the dialect toggle
+
+**Date:** 2026-08-20
+
+The section above closed by saying native-speaker validation was the highest-
+value missing piece, and that a single verb across person and tense would close
+the one gap the dictionary cannot. That happened. A speaker of the Mangalore
+city variety supplied a verb paradigm and four worked sentences, which filled
+the gap and corrected two things this repo had wrong.
+
+## What the sentences confirmed
+
+Every content word and pronoun checked out against the Lexicon:
+
+| speaker | Lexicon | page |
+|---|---|---|
+| naa / naan | ñānụ "I; myself; me" | 339 |
+| nee | n'ī "You" | 434 |
+| awnu | avnu "He" | 40 |
+| nak | n'akkụ "To me" | 421 |
+| nik | n'ikkụ "To you" | 431 |
+| nando | n'aṇḍo "Mine" | 421 |
+| chengayi | ceṅṅa(ṅā)yi "Friend" | 299 |
+| po | pō "Go" | 524 |
+| undu | uṇḍu "Is there; exists" | 72 |
+| yawde | evuḍɛ "Where ?" | 104 |
+| pidille | **piḍillɛ "Don't know"** | 485 |
+| abba | abba "Father" | 23 |
+| maad | māḍụ "Roof" | 619 |
+
+`piḍillɛ` is a headword in its own right, and `piḍi` p484 sense 3 is
+"Knowledge" — so the negative is transparently *knowledge + illa (no)*.
+
+`pō` is the entry Phase 2 repaired from the letter-spaced "p ō". It would have
+been unfindable a day earlier.
+
+## Two corrections to this repo
+
+**`authl` / `avtulu`.** The notes claimed the Lexicon had exactly four words for
+house. It has at least six: `ava`, `aga`, `avtu`, `porɛ`, `bīḍụ`, `baitụ`. The
+first search only matched glosses that were exactly the word "House", missing
+`aga` "Home" and the `avtu` stem. `avtulu` p40 = "At home" is the speaker's
+`authl`, and `avtuḍo cela(lo)vu` p40 confirms the stem. The pronunciation fits
+because the Academy's key gives plain `t` as "th of thief", so `avtu` is
+[auθu] — the "outh" of South, as the speaker described it.
+
+**The `-ḍo` diagnostic was wrong.** This repo had recorded that a bracketed
+`-ḍo(ro)` marks a verbal noun and an unbracketed `-ḍo` marks a genitive. That
+is not the distinction. `-ḍo`/`-ro` is one suffix serving both functions —
+`abbaro` "father's" is the same ending as in the gerunds.
+
+## The nasal rule
+
+The speaker observed that "awndo is always do". That turns out to be a regular
+phonological rule, and the dictionary confirms it with no exceptions at all:
+
+| | count |
+|---|---|
+| words ending `-ro` preceded by a nasal | **0** of 159 |
+| bracketed `ḍo(ro)` preceded by a nasal | **0** of 980 |
+| bracketed `ḍo(ro)` preceded by a vowel | **980** of 980 |
+
+After a nasal (n, ṇ, ñ, ṅ, m) the alternation is neutralised to `-ḍo`; `ro` is
+impossible there. That is why the pronoun genitives never alternate — the nasal
+blocks it — and not, as previously recorded, because they are a different
+morpheme. The speaker's own phrase shows both halves at once: **`nando authro
+maad`**, where `nando` has the nasal and takes `ḍo`, and `authro` has none and
+takes the southern `ro`.
+
+## The verb paradigm
+
+None of this is in the Lexicon; it cannot be, since the Lexicon lists citation
+forms only.
+
+Verbs are **stem + tense marker + person ending**, and the person ending is
+much smaller than expected: **1st and 2nd person are always identical**, and
+only the 3rd person is marked, with `-a`.
+
+| | past `-y-` | future `-nd-` | immediate `-nd-` + `-o` |
+|---|---|---|---|
+| naa (I) | poye | ponday | pondo |
+| nee (you) | poye | ponday | pondo |
+| awnu (he) | poy**a** | pond**a** | — |
+| nanga (we) | — | poi | — |
+
+`koḍu` "give" → `kodte` "I gave" follows the same shape with `-t-` for the
+tense consonant. This corrected an earlier guess in this repo that `-e` was a
+1st-person ending; it is not a person marker at all.
+
+Also recovered: negation by suffix (`piḍi` + `illɛ`), dative subjects for
+experiencer verbs (`nak piḍillɛ`, literally "to me no knowledge"), and yes/no
+questions formed by a fused `-a` with sandhi (`undu` → `unda?`, `poya` →
+`poyana?`) — the same clitic as Tamil and Kannada, not a separate particle as
+first assumed.
+
+## App changes
+
+- **Variety toggle** in Settings: Mangalore city (`-ro`, default) or Udupi and
+  north (`-ḍo`). It rewrites dictionary output, the results panel and the
+  dictionary lines in the prompt, and it redraws live without retyping.
+  Conversion is mechanical, not a lookup: apply `ro` only after a vowel, never
+  after a nasal. 1,244 entries are affected — 980 the Lexicon brackets plus 264
+  recorded in one form only, which previously could not be shown in the other
+  variety at all.
+- **Search accepts either variety** regardless of the setting, so `arudo` and
+  `aruro` both reach the same entry.
+- **Case suffixes are stripped on lookup.** `abbaro` is not a headword; `abba`
+  is. Typing `abbaro` now answers "Father" and says why: *abbaro = abba + -ro
+  (genitive)*.
+- **Function words outrank homographs.** Since the Academy tags only nouns and
+  verbs, an untagged entry is the likelier function word. `nakku` now answers
+  "To me" first instead of "Press; crush down".
+- **The prompt carries the speaker grammar**: case, the verb paradigm,
+  negation, dative subjects, question formation and the dialect rule, plus a
+  negative constraint against agreeing the verb for 1st vs 2nd person and two
+  extra self-check items.
+
+## Still open
+
+- The paradigm rests on **two verbs from one speaker**. Shape is trustworthy,
+  coverage is thin, and the prompt says so.
+- Whether `nanga ponday` is valid alongside `poi` — i.e. whether number is
+  marked at all, or `poi` is a hortative. Left unstated rather than guessed.
+- The dialect line is drawn between Udupi and Mangalore city on the speaker's
+  evidence. Puttur, Sullia and Kasargod were deliberately left out of scope.
+- The speaker's own romanisation (`ng` for ṅ, `w` for v, `ee` for ī, dropped
+  final `ụ`) still misses the search index on about a third of words. Parked as
+  a later simple/phonetic toggle.

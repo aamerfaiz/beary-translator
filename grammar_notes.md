@@ -261,8 +261,9 @@ tense/person marking is not recoverable from it. Only a couple of entries hint
 at it at all (uṇḍɛ "I have eaten", beccɛ "I have kept it"). Beary verb citation
 forms end overwhelmingly in **-kụ** (417), **-ṭụ** (343) and **-ḍụ** (134).
 
-This is the single biggest remaining gap, and it cannot be filled from the
-sources in this repo. It needs a speaker.
+This was the single biggest gap, and it could not be filled from the printed
+sources. A speaker has since supplied the paradigm — see §10. What is there
+covers two verbs, so the gap is narrowed, not closed.
 
 ## 9. On using Tulu as a model
 
@@ -291,8 +292,110 @@ describe Beary verbs either.
 So: take the sentence pattern from Tulu, take every actual word from the
 Lexicon, and never the other way round.
 
+## 10. Grammar from a speaker
+
+The Lexicon is a word list. It has no conjugation, and the Academy says
+outright that no Beary grammar has been written. Everything in this section
+came from a native speaker of the **Mangalore city** variety (August 2026).
+Every stem and pronoun in it was then checked against the Lexicon and matches;
+the inflected forms are the speaker's, because the dictionary has none.
+
+Treat this as reliable in shape and thin in coverage: the verb paradigm rests
+on two verbs from one speaker.
+
+### Case
+
+| case | suffix | examples |
+|---|---|---|
+| dative (to, for) | `-kụ`, `-gụ` | n'akkụ (to me) · n'ikkụ (to you) · ōnugu (to him) · ceṅṅāyigụ (to a friend) |
+| genitive ('s) | `-ḍo`, `-ro` | n'aṇḍo (my) · ōnḍo (his) · abbaro (father's) · avtuḍo ~ avturo (of the house) |
+| locative (in, at) | `-lụ` | adụ "that" → adụlụ "in that" · avtu "house" → avtulu "at home" |
+
+The genitive attaches to ordinary nouns, not just pronouns. The Lexicon
+corroborates all three: `n'akkụ` p421, `n'ikkụ` p431, `ōnugu` p126, `n'aṇḍo`
+p421, `adụlụ` p16, `avtulu` p40.
+
+### Verbs: stem + tense marker + person ending
+
+**1st and 2nd person are always identical.** Person is carried by the pronoun,
+not the verb. Only the 3rd person is marked, with `-a`.
+
+| | past `-y-` | future `-nd-` | immediate `-nd-` + `-o` |
+|---|---|---|---|
+| naa (I) | poye | ponday | pondo |
+| nee (you) | poye | ponday | pondo |
+| awnu (he) | poy**a** | pond**a** | — |
+| nanga (we) | — | poi | — |
+
+Also: `po` bare/imperative; `poyont ullɛ` progressive with an auxiliary, with
+`ullar` as the respectful form used for elders.
+
+The same shape holds for another verb: `koḍu` "give" → `kodte` "I gave"
+(`koḍ` + `t` + `e`). The tense consonant varies by stem — `-y-` for pō, `-t-`
+for koḍ — which is what Tulu does too.
+
+### Negation
+
+Suffix the negative to the stem; there is no separate word.
+`piḍi` "knowledge" + `illɛ` "no" → **`piḍillɛ`** "does not know" — and
+`piḍillɛ` is itself a Lexicon headword (p485), with `piḍi` p484 sense 3 glossed
+"Knowledge". The negative does not change for person.
+
+### Dative subjects
+
+Experiencer verbs take a **dative** subject, not a nominative one:
+
+- `nak piḍillɛ` — "I don't know", literally *to me, no knowledge*
+- `nik piḍillɛ?` — "don't you know?"
+
+The verb is identical in both; only the pronoun changes. This is the clearest
+demonstration that Beary does not mark person on the verb.
+
+### Questions
+
+**Yes/no** — add `-a` to the final word. It fuses with the last vowel instead of
+standing alone, and after a final `-a` a linking `-n-` appears:
+
+- `book avtulu undu` → `book avtulu **unda**?` "is the book in the house?"
+- `awnu poya` → `awnu **poyana**?` "did he go?"
+
+This is the same clitic as Tamil and Kannada `-ā`.
+
+**Wh-questions** take no `-a`: question word first, everything else in normal
+order, verb still last — `yawde pondo?` "where are you going?"
+
+## 11. The ḍo / ro split is regional
+
+The Academy calls `-ro` and `-ḍo` "used with the same meaning" and never says
+who uses which. They are **regional**:
+
+- **`-ḍo`** — north, Udupi and beyond
+- **`-ro`** — Mangalore city and Ullal
+
+One phonological rule overrides the choice: **after a nasal it is always
+`-ḍo`**, in both varieties. `ro` is simply impossible there, which is why
+`n'aṇḍo` "my" is never `n'aṇro`.
+
+The Lexicon confirms this without exception:
+
+| | count |
+|---|---|
+| words ending `-ro` preceded by a nasal | **0** of 159 |
+| bracketed `ḍo(ro)` alternations preceded by a nasal | **0** of 980 |
+| bracketed alternations preceded by a vowel | **980** of 980 |
+
+So the alternation applies exactly after a vowel, and the editors' bracket
+notation only ever appears where `ro` is possible. That makes the two varieties
+mechanically convertible: `abbaḍo` ↔ `abbaro`, `avtuḍo` ↔ `avturo`, while
+`n'aṇḍo` stays put. It also matches the Academy's own worked example on
+p. xlvii, `pandurɛ` = `panduḍɛ`.
+
+1,244 dictionary entries are affected — 980 the Lexicon brackets, plus 264
+recorded in one form only, which can now be converted rather than left as-is.
+
 ## Sources
 
 - `docs/Dictionary.PDF` — Beary–Kannada–English Lexicon, 752 pages of entries.
 - `docs/PronunciationandStuff.PDF` — Preface (Prof. B.A. Viveka Rai),
   phonology and pronunciation key, Editorial, Member Secretary's note.
+- A native speaker of the Mangalore city variety, August 2026, for §10-11.

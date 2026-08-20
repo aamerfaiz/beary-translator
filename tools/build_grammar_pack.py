@@ -71,16 +71,114 @@ SYNTAX = {
         "by inserting an equivalent of English 'do not'.",
     ],
     "known_gaps": [
-        "Beary verb conjugation for person, number and tense is not documented. "
-        "The Academy states plainly that no grammar of Beary has been written "
-        "yet, and the Lexicon lists verbs only in their citation form. Do not "
-        "state a conjugated form with confidence; prefer the citation form or "
-        "an unambiguous periphrasis.",
-        "Tulu's own conjugation classes were deliberately NOT copied in: Beary "
-        "verb citation forms end overwhelmingly in -kụ, -ṭụ and -ḍụ, which does "
-        "not match Tulu's -pu / -N / other grouping, so those rules would not "
-        "apply.",
+        "The Lexicon lists verbs in a citation form only; its own pages contain "
+        "no conjugation. What is in 'verbs' below came from a speaker, not from "
+        "the dictionary, and covers two verbs. Follow its shape, but do not "
+        "invent tense forms far beyond it.",
+        "Tulu's conjugation classes were deliberately NOT copied in: Beary verb "
+        "citation forms end overwhelmingly in -kụ, -ṭụ and -ḍụ, which does not "
+        "match Tulu's -pu / -N / other grouping.",
     ],
+}
+
+
+# ---------------------------------------------------------------------------
+# Layer 3: grammar confirmed by a speaker, checked against the Lexicon where
+# the Lexicon has anything to say. None of the verb paradigm is in the
+# dictionary -- it cannot be, the Lexicon lists citation forms only.
+# ---------------------------------------------------------------------------
+SPEAKER = {
+    "_source": (
+        "Native speaker of the Mangalore city variety, August 2026. Every stem "
+        "and pronoun below was then checked against the Lexicon and matches; "
+        "the inflected forms are the speaker's, since the Lexicon has none."
+    ),
+    "_confidence": (
+        "Case suffixes and the ḍo/ro rule are corroborated by the Lexicon. The "
+        "verb paradigm rests on two verbs from one speaker -- reliable in shape, "
+        "thin in coverage."
+    ),
+    "case": [
+        {"case": "dative (to / for)", "suffix": "-kụ, -gụ",
+         "examples": ["n'akkụ (to me)", "n'ikkụ (to you)", "ōnugu (to him)",
+                      "ceṅṅāyigụ (to a friend)"]},
+        {"case": "genitive ('s)", "suffix": "-ḍo, -ro",
+         "examples": ["n'aṇḍo (my)", "ōnḍo (his)", "abbaro (father's)",
+                      "avtuḍo / avturo (of the house)"],
+         "note": "Attaches to ordinary nouns as well as pronouns. The ḍo/ro "
+                 "choice is regional -- see dialect below."},
+        {"case": "locative (in / at)", "suffix": "-lụ",
+         "examples": ["adụ (that) -> adụlụ (in that)",
+                      "avtu (house) -> avtulu (at home)",
+                      "aḍi (under) -> aḍilụ (beneath)"]},
+    ],
+    "verbs": {
+        "shape": "stem + tense marker + person ending",
+        "tense_markers": [
+            "past: -y- or -t-, depending on the stem (pō -> poye, koḍ -> kodte)",
+            "future: -nd- (pō -> ponday)",
+        ],
+        "person_endings": [
+            "1st and 2nd person are ALWAYS the same. Never distinguish 'I' from "
+            "'you' on the verb -- the pronoun carries it.",
+            "3rd person takes -a, in every tense.",
+        ],
+        "paradigm_go": {
+            "stem": "pō (go)",
+            "forms": [
+                "po            -- bare / imperative      (nee po = you go)",
+                "poye          -- past, 1st/2nd          (naa poye = I went)",
+                "poya          -- past, 3rd              (awnu poya = he went)",
+                "ponday        -- future, 1st/2nd        (naa/nee ponday = I/you will go)",
+                "ponda         -- future, 3rd            (awnu ponda = he will go)",
+                "pondo         -- immediate/progressive  (naa pondo = I'm going to go;"
+                " yawde pondo? = where are you going?)",
+                "poi           -- 1st person plural      (nanga poi = we will go)",
+                "poyont ullɛ   -- progressive with auxiliary; ullar is the"
+                " respectful/elderly form",
+            ],
+        },
+        "paradigm_give": {
+            "stem": "koḍu (give)",
+            "forms": ["kodte -- past, 1st/2nd (naa ... kodte = I gave)"],
+        },
+    },
+    "negation": {
+        "rule": "Negate by suffixing the negative to the stem, not with a "
+                "separate word. illa / illɛ is 'no'.",
+        "examples": ["piḍi (knowledge) + illɛ -> piḍillɛ (do not know)"],
+        "note": "The negative verb does not change for person.",
+    },
+    "dative_subject": {
+        "rule": "Experiencer verbs -- knowing, wanting, feeling -- take a DATIVE "
+                "subject, not a nominative one. Literally 'to me there is no "
+                "knowledge', never 'I do not know'.",
+        "examples": ["nak piḍillɛ (I don't know)", "nik piḍillɛ? (don't you know?)"],
+        "note": "Same verb form for both. Only the pronoun changes.",
+    },
+    "questions": {
+        "yes_no": (
+            "Add -a to the final word; it fuses with the last vowel rather than "
+            "standing as a separate word. undu -> unda? (is it?); after a final "
+            "-a a linking -n- appears: poya -> poyana? (did he go?). This is the "
+            "same clitic as Tamil/Kannada -aa."
+        ),
+        "wh": (
+            "Question word first, everything else in normal order, verb still "
+            "last, and NO yes/no -a: yawde pondo? (where are you going?)"
+        ),
+    },
+    "dialect": {
+        "rule": (
+            "The genitive and verbal-noun suffix is -ro in the south (Mangalore "
+            "city, Ullal) and -ḍo in the north (Udupi). They are the same "
+            "suffix. After a nasal (n, ṇ, ñ, ṅ, m) it is ALWAYS -ḍo in both "
+            "varieties -- ro is impossible there. Confirmed across the whole "
+            "Lexicon: of 159 words ending -ro, none follows a nasal."
+        ),
+        "examples": ["abbaḍo (north) = abbaro (south), father's",
+                     "n'aṇḍo (both, nasal blocks ro), my"],
+    },
 }
 
 
@@ -170,10 +268,12 @@ SUFFIX_CLAIMS = [
     },
     {
         "name": "verbal noun",
-        "suffix": "-ḍo / -ro (interchangeable), -ḍɛ / -rɛ",
-        "gloss": "turns a verb into 'the act of doing'; the Lexicon writes the "
-                 "pair inside brackets, e.g. amsākụḍo(ro)",
-        "examples": ["cellụḍo = cellụro (saying)", "ākụḍo = ākụro (doing)"],
+        "suffix": "-ḍo / -ro, and -ḍɛ / -rɛ",
+        "gloss": "turns a verb into 'the act of doing'. The two are the same "
+                 "suffix in different regions, not free variants -- see DIALECT "
+                 "below. The Lexicon writes the pair in brackets, amsākụḍo(ro)",
+        "examples": ["cellụḍo (north) = cellụro (south), saying",
+                     "ākụḍo (north) = ākụro (south), doing"],
         "probe": ("ḍo", "ro"),
     },
     {
@@ -310,6 +410,7 @@ def main():
             "entries_mined": len(entries),
         },
         "syntax": SYNTAX,
+        "speaker": SPEAKER,
         "suffixes": suffixes,
         "pronouns": collect(PRONOUNS),
         "question_words": collect(QUESTION_WORDS),
