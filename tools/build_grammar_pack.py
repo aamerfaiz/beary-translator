@@ -179,6 +179,45 @@ SPEAKER = {
         "examples": ["abbaḍo (north) = abbaro (south), father's",
                      "n'aṇḍo (both, nasal blocks ro), my"],
     },
+    # From a second speaker-corrected sentence (grammar_notes.md §12). It
+    # mostly corroborated the case/dialect data above; what's new is below,
+    # kept separate because the verb forms don't fit the two-verb paradigm
+    # and aren't generalized into a rule on a single example.
+    "colloquial_vocab": [
+        {"concept": "bottle", "lexicon_word": "kuppi",
+         "lexicon_gloss": "Glass; glass bottle", "spoken_word": "baatli",
+         "note": "English 'bottle' via Kannada; not a Lexicon headword at "
+                 "all. Prefer the spoken word over the Lexicon word when "
+                 "both exist -- the Lexicon word isn't wrong, it's "
+                 "registerally distant."},
+    ],
+    "attested_once": {
+        "_note": (
+            "Each form below is attested in exactly one speaker-corrected "
+            "sentence and does NOT fit the verb paradigm above. Use them "
+            "only for the exact word given -- do NOT generalize the ending "
+            "to other verbs or persons."
+        ),
+        "forms": [
+            {"beary": "poginne", "gloss": "went (1st person past)",
+             "note": "Same cell as poye above (pō, 1st person past) but a "
+                     "different ending. Unreconciled -- may be a genuine "
+                     "alternate form, a different aspect, or specific to a "
+                     "longer spoken sentence rather than a single elicited "
+                     "word."},
+            {"beary": "becchir", "gloss": "had kept (of an elder, e.g. umma/mother)",
+             "note": "From the beccɛ ('I have kept it') family. Does not "
+                     "take the -a of the ordinary 3rd person (compare poya "
+                     "'he went'). May be an elder-honorific past ending, "
+                     "parallel to how ullar is the respectful form of ullɛ "
+                     "in the progressive auxiliary above -- one example only."},
+            {"beary": "pidi aith", "gloss": "realized",
+             "note": "piḍi (knowledge, a genuine Lexicon headword, p484) "
+                     "plus aith, an auxiliary meaning roughly 'became / "
+                     "happened' -- functionally close to Kannada āyitu. Not "
+                     "yet cross-checked against another sentence using aith."},
+        ],
+    },
 }
 
 
@@ -220,7 +259,8 @@ POSTPOSITIONS = [
     ("under / below", ["under", "below"]), ("together / with", ["together", "with"]),
     ("without", ["without"]), ("instead of", ["instead of"]),
     ("through", ["through"]), ("around", ["around"]), ("beside", ["beside"]),
-    ("after", ["after"]), ("before", ["before"]), ("up to / until", ["up to", "until"]),
+    ("after", ["after"]), ("before / already", ["before"]),
+    ("up to / until", ["up to", "until"]),
     ("between / in the middle", ["in the middle", "between"]),
 ]
 

@@ -917,7 +917,9 @@
     "- Do NOT agree the verb with the subject for 1st vs 2nd person. 'I' and",
     "  'you' take the SAME verb form in Beary; only 3rd person differs.",
     "- Do NOT go far beyond the verb paradigm given below. It covers two verbs;",
-    "  follow its shape and say so if you are unsure rather than inventing tense."
+    "  follow its shape and say so if you are unsure rather than inventing tense.",
+    "- Do NOT generalize an ATTESTED ONCE form's ending to other verbs, persons",
+    "  or tenses. Use it only for the exact word it was given for."
   ].join("\n");
 
   // Build the grammar section out of the generated pack, so the prompt always
@@ -989,6 +991,26 @@
       out.push("DIALECT. " + K.dialect.rule);
       out.push("    " + K.dialect.examples.join(" · "));
       out.push("");
+
+      if (K.colloquial_vocab && K.colloquial_vocab.length){
+        out.push("COLLOQUIAL VOCABULARY. The Lexicon's headword for a concept is");
+        out.push("sometimes the formal/older term; prefer the word actually spoken");
+        out.push("when both exist -- the Lexicon word isn't wrong, it's registerally");
+        out.push("distant:");
+        for (const v of K.colloquial_vocab){
+          out.push("- " + v.concept + ": say " + v.spoken_word + ", not the Lexicon's " +
+                    v.lexicon_word + " (\"" + v.lexicon_gloss + "\")");
+        }
+        out.push("");
+      }
+
+      if (K.attested_once && K.attested_once.forms.length){
+        out.push("ATTESTED ONCE. " + K.attested_once._note);
+        for (const f of K.attested_once.forms){
+          out.push("- " + f.beary + " = " + f.gloss + " -- " + f.note);
+        }
+        out.push("");
+      }
     }
 
     slot("PRONOUNS AND CASE FORMS", G.pronouns);
