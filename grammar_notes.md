@@ -393,9 +393,61 @@ p. xlvii, `pandurɛ` = `panduḍɛ`.
 1,244 dictionary entries are affected — 980 the Lexicon brackets, plus 264
 recorded in one form only, which can now be converted rather than left as-is.
 
+## 12. Further speaker corrections (second example)
+
+Continuing §10–11: the same speaker corrected a second test sentence chosen to
+be grammatically demanding —
+
+> I had to go and get a bottle of water. Then I realized my mother already
+> kept a bottle for me.
+
+> naan thanni ro baatli edko poginne. Appa nak pidi aith umma munnole thanni
+> ro baatli becchir.
+
+**Corroborates §10–11, doesn't add a new postposition.** `thanni ro baatli`
+("bottle of water") is the genitive from §10's Case table and §11's regional
+split at work, not a new form: *thanni* + genitive `-ro` + *baatli*. A
+Mangalore-city speaker using `-ro` rather than `-ḍo` is exactly what §11
+predicts. Likewise `nak` = `n'akkụ` "to me" (dative, §10) and `Appa` = `appa`
+(§7 Function words) are both exact matches, not new data.
+
+**New: colloquial vocabulary the Lexicon doesn't surface.** The Lexicon's
+headword for "bottle" is *kuppi* ("Glass; glass bottle"), but *baatli* — an
+English loanword via Kannada — is what's actually said, and isn't a Lexicon
+headword at all. When both exist, prefer the colloquial word for sentence
+translation; the Lexicon word isn't wrong, it's registerally distant.
+
+**New: a sense the Lexicon glosses differently than the sense needed.**
+"Already" has no Lexicon headword under that gloss, but the postposition
+*mun'nolu* (§7, "after / before") covers it — the Lexicon's "Before" sense is
+the same word as "already," just glossed narrower than the sentence needs.
+Literal English-word retrieval won't find this bridge on its own.
+
+**New, unreconciled: a second past-tense ending for *pō*.** §10 gives *pō*
+"go" 1st person past as `poye`. This sentence's `poginne` ("went") is also
+1st person past, same verb, same speaker — but a different ending for the
+same paradigm cell. Not yet explained: could be a genuine alternate form, a
+different aspect ("went and [did something]" vs. plain past), or an artifact
+of a full spoken sentence vs. an elicited single word. Needs a follow-up
+question to the speaker, not a guess.
+
+**New, unreconciled: a possible elder-honorific verb ending.** `umma ...
+becchir` ("mother had kept") doesn't fit §10's 3rd-person `-a` pattern at all
+(compare `poya` "he went"). §10 already has one other elder-respect form
+(`ullar`, the respectful progressive auxiliary) — `-chir` may be the same
+kind of honorific marking applied to a plain past tense, triggered because
+the subject is *umma* rather than a generic "he/she." One example only;
+treat as a hypothesis, not a rule.
+
+**New: an auxiliary for "realized."** `pidi aith` pairs *piḍi* ("knowledge"
+— already a Lexicon headword, p484–485, and the base of `piḍillɛ` "doesn't
+know" in §10's Negation section) with `aith`, an auxiliary meaning roughly
+"became / happened," functionally close to Kannada *āyitu*. Not yet
+cross-checked against another sentence using `aith`.
+
 ## Sources
 
 - `docs/Dictionary.PDF` — Beary–Kannada–English Lexicon, 752 pages of entries.
 - `docs/PronunciationandStuff.PDF` — Preface (Prof. B.A. Viveka Rai),
   phonology and pronunciation key, Editorial, Member Secretary's note.
-- A native speaker of the Mangalore city variety, August 2026, for §10-11.
+- A native speaker of the Mangalore city variety, August 2026, for §10–12.
