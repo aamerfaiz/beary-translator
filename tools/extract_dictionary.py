@@ -80,6 +80,59 @@ def convert_apara(text: str) -> str:
     return "".join(APARA.get(ch, ch) for ch in text)
 
 
+def join_letterspaced(word: str) -> str:
+    """Repair very short headwords that the typesetter letter-spaced.
+
+    Two-letter words like pō (go) and bā (come) are set with the letters spread
+    apart, and the gap survives extraction as a real space -- "p ō". A lone
+    consonant is not a possible Beary word, so when a short headword splits into
+    two chunks and one of them is a single letter, the space is spurious.
+
+    Deliberately conservative: "ī mun'nolu" (before) is genuinely two words and
+    is left alone because it is far too long to be one letter-spaced word.
+    """
+    parts = word.split(" ")
+    if len(parts) == 2 and len(word) - 1 <= 4 and min(len(p) for p in parts) == 1:
+        return "".join(parts)
+    return word
+
+
+def expand_variants(word: str):
+    """Expand the Lexicon's bracket notation into the forms it stands for.
+
+        aṅkụ(ku)      -> aṅkụ, aṅku
+        caṅṅa(ṅā)yi   -> caṅṅayi, caṅṅāyi
+        avu(vo)ṇḍo    -> avuṇḍo, avoṇḍo
+        ārụḍo(ro)     -> ārụḍo, ārụro
+
+    One rule covers both positions: the bracketed text replaces the same number
+    of characters immediately before the bracket. So the brackets are NOT an
+    insertion -- reading "caṅṅa(ṅā)yi" as "caṅṅaṅāyi" is wrong, and that is
+    exactly what naively stripping the brackets produces.
+    """
+    word = unicodedata.normalize("NFC", word)
+    m = re.match(r"^(.*?)\(([^)]*)\)(.*)$", word)
+    if not m:
+        return [word]
+    before, inside, after = m.groups()
+    n = len(inside)
+    forms = [
+        before + after,
+        (before[:-n] if n and len(before) >= n else before) + inside + after,
+    ]
+    out = []
+    for w in forms:
+        w = re.sub(r"\s+", " ", w).strip()
+        if w and w not in out:
+            out.append(w)
+    if any("(" in w for w in out):
+        nested = []
+        for w in out:
+            nested.extend(expand_variants(w))
+        return list(dict.fromkeys(nested))
+    return out
+
+
 def fold_ascii(text: str) -> str:
     out = []
     for ch in text:
@@ -251,17 +304,27 @@ def parse_page(page, pageno, shift=0):
         beary = e["beary"].strip()
         # A trailing "?" is part of the headword for interrogatives (āro ?).
         beary = re.sub(r"\s+", " ", beary)
+        beary = join_letterspaced(beary)
         if not beary or not english_text:
             continue
 
+        variants = expand_variants(beary)
         rec = {
             "beary": beary,
-            "beary_ascii": fold_ascii(beary),
+            "beary_ascii": fold_ascii(variants[0]),
             "english": english_text,
             "senses": split_senses(english_text),
             "pos": pos,
             "page": e["page"],
         }
+        if len(variants) > 1:
+            # Both spellings are real words a user may type, so both need to be
+            # searchable. Folding can collapse them to one key (caṅṅayi and
+            # caṅṅāyi both give "cannayi"), which is fine.
+            rec["variants"] = variants
+            keys = list(dict.fromkeys(fold_ascii(v) for v in variants))
+            if len(keys) > 1:
+                rec["ascii_variants"] = keys
         if see_also:
             rec["see_also"] = see_also
         out.append(rec)
